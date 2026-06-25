@@ -592,10 +592,12 @@ const ASSESSMENTS = [
 ];
 
 const STORAGE_KEY = "gaze-pet-qol-state-v1";
+const PRODUCTION_ORIGIN = "https://pet-qol-assessment.vercel.app";
 const app = document.querySelector("#app");
 const assessmentById = new Map(ASSESSMENTS.map((assessment) => [assessment.id, assessment]));
 let panelStatus = "";
 let panelStatusKind = "success";
+let lastQrTrigger = null;
 
 const state = loadState();
 state.activeId = getInitialAssessmentId();
@@ -635,9 +637,24 @@ app.addEventListener("click", async (event) => {
     await copyText(window.location.href);
   }
 
+  if (action === "open-qr-modal") {
+    lastQrTrigger = event.target.closest("[data-action]");
+    openQrModal(lastQrTrigger.dataset.qrUrl, lastQrTrigger.dataset.qrTitle);
+  }
+
   if (action === "upload-firebase") {
     await uploadActiveRecord();
   }
+});
+
+document.addEventListener("click", (event) => {
+  if (event.target.closest("[data-modal-action='close-qr']")) {
+    closeQrModal();
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeQrModal();
 });
 
 app.addEventListener("change", (event) => {
@@ -882,11 +899,21 @@ function renderQrShareBlock(assessment) {
 
   return `
     <div class="qr-share" aria-label="此量表 QR Code">
-      <img
-        class="qr-image"
-        src="${escapeAttribute(getQrCodeUrl(shareUrl))}"
-        alt="掃描開啟 ${escapeAttribute(assessment.shortTitle)}"
-      />
+      <button
+        class="qr-image-button"
+        type="button"
+        data-action="open-qr-modal"
+        data-qr-url="${escapeAttribute(shareUrl)}"
+        data-qr-title="${escapeAttribute(assessment.shortTitle)}"
+        aria-label="放大 ${escapeAttribute(assessment.shortTitle)} QR Code"
+      >
+        <img
+          class="qr-image"
+          src="${escapeAttribute(getQrCodeUrl(shareUrl))}"
+          alt=""
+        />
+        <span class="qr-image-hint">放大</span>
+      </button>
       <div class="qr-copy">
         <h3>手機掃描填寫此量表</h3>
         <p>診間可開啟這個分頁，讓家長掃描後直接進入「${escapeHtml(assessment.shortTitle)}」。</p>
@@ -895,6 +922,40 @@ function renderQrShareBlock(assessment) {
       </div>
     </div>
   `;
+}
+
+function openQrModal(shareUrl, title) {
+  closeQrModal({ restoreFocus: false });
+  const modal = document.createElement("div");
+  modal.className = "qr-modal";
+  modal.setAttribute("role", "dialog");
+  modal.setAttribute("aria-modal", "true");
+  modal.setAttribute("aria-labelledby", "qr-modal-title");
+  modal.innerHTML = `
+    <button class="qr-modal-backdrop" type="button" data-modal-action="close-qr" aria-label="關閉 QR Code"></button>
+    <div class="qr-modal-card">
+      <button class="qr-modal-close" type="button" data-modal-action="close-qr" aria-label="關閉">x</button>
+      <h2 id="qr-modal-title">${escapeHtml(title || "此量表")} QR Code</h2>
+      <img
+        class="qr-modal-image"
+        src="${escapeAttribute(getQrCodeUrl(shareUrl, 520))}"
+        alt="掃描開啟 ${escapeAttribute(title || "此量表")}"
+      />
+      <a class="qr-modal-url" href="${escapeAttribute(shareUrl)}" target="_blank" rel="noopener">${escapeHtml(shareUrl)}</a>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  document.body.classList.add("modal-open");
+  modal.querySelector(".qr-modal-close")?.focus();
+}
+
+function closeQrModal(options = {}) {
+  const { restoreFocus = true } = options;
+  const modal = document.querySelector(".qr-modal");
+  if (!modal) return;
+  modal.remove();
+  document.body.classList.remove("modal-open");
+  if (restoreFocus && lastQrTrigger) lastQrTrigger.focus();
 }
 
 function renderScaleGuide(assessment) {
@@ -1268,11 +1329,23 @@ function scoreLabelFor(scale, item, value) {
 }
 
 function getAssessmentUrl(assessmentId) {
-  return new URL(`/${assessmentId}/`, window.location.origin).href;
+  return new URL(`/${assessmentId}/`, getPublicOrigin()).href;
 }
 
-function getQrCodeUrl(url) {
-  return `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=12&data=${encodeURIComponent(
+function getPublicOrigin() {
+  if (isLocalPreview()) return window.location.origin;
+  const host = window.location.hostname;
+  if (
+    host === "pet-qol-assessment.vercel.app" ||
+    host.endsWith("-ckvululms-3042s-projects.vercel.app")
+  ) {
+    return PRODUCTION_ORIGIN;
+  }
+  return window.location.origin;
+}
+
+function getQrCodeUrl(url, size = 180) {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&margin=12&data=${encodeURIComponent(
     url
   )}`;
 }
