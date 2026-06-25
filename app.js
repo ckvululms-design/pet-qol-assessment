@@ -681,6 +681,9 @@ app.addEventListener("change", (event) => {
     ensureMetaState(assessmentId);
     state.meta[assessmentId][target.dataset.metaCheck] = target.checked;
     saveState();
+    if (target.dataset.metaCheck === "externalUser") {
+      syncPatientDigitsRequirement(assessmentId);
+    }
   }
 });
 
@@ -827,6 +830,7 @@ function render() {
 function renderAssessment(assessment) {
   const meta = state.meta[assessment.id] || {};
   const today = new Date().toISOString().slice(0, 10);
+  const patientDigitsRequired = !meta.externalUser;
   return `
     <section class="assessment-head" aria-labelledby="assessment-title">
       <h2 id="assessment-title" class="assessment-title">${escapeHtml(assessment.title)}</h2>
@@ -845,7 +849,12 @@ function renderAssessment(assessment) {
           )}" placeholder="請填寫寵物姓名或代號" required aria-required="true" />
         </label>
         <label class="field-label">
-          四院共用病歷號碼後五碼
+          <span>
+            四院共用病歷號碼後五碼
+            <span class="required-mark ${patientDigitsRequired ? "" : "conditional-mark"}" data-patient-required-label="${assessment.id}">
+              ${patientDigitsRequired ? "必填" : "非四院可免填"}
+            </span>
+          </span>
           <span class="patient-input-wrap">
             <span class="patient-prefix" aria-hidden="true">PT0</span>
             <input
@@ -860,6 +869,8 @@ function renderAssessment(assessment) {
               value="${escapeAttribute(meta.patientDigits || "")}"
               placeholder="12345"
               aria-label="四院共用病歷號碼後五碼"
+              title="請輸入 5 碼數字"
+              ${patientDigitsRequired ? 'required aria-required="true"' : 'aria-required="false"'}
             />
           </span>
         </label>
@@ -1406,6 +1417,26 @@ function focusMetaField(assessmentId, metaName) {
   field.reportValidity?.();
 }
 
+function syncPatientDigitsRequirement(assessmentId) {
+  const meta = getMetaDisplay(assessmentId);
+  const field = document.querySelector(
+    `[data-assessment="${CSS.escape(assessmentId)}"][data-meta="patientDigits"]`
+  );
+  const label = document.querySelector(
+    `[data-patient-required-label="${CSS.escape(assessmentId)}"]`
+  );
+
+  if (field) {
+    field.required = !meta.externalUser;
+    field.setAttribute("aria-required", meta.externalUser ? "false" : "true");
+  }
+
+  if (label) {
+    label.textContent = meta.externalUser ? "非四院可免填" : "必填";
+    label.classList.toggle("conditional-mark", meta.externalUser);
+  }
+}
+
 function buildSummaryText() {
   const assessment = getActiveAssessment();
   const stats = getStats(assessment);
@@ -1451,6 +1482,15 @@ async function uploadActiveRecord() {
     return;
   }
 
+  if (!meta.externalUser && !meta.patientRecordNumber) {
+    setPanelStatus(
+      "請輸入四院共用病歷號碼後五碼；若不是四院病例，請勾選非四院使用。",
+      "error"
+    );
+    focusMetaField(assessment.id, "patientDigits");
+    return;
+  }
+
   if (stats.completed < stats.itemCount) {
     setPanelStatus(
       `尚有 ${stats.itemCount - stats.completed} 題未完成，請完成後再上傳。`,
@@ -1461,14 +1501,6 @@ async function uploadActiveRecord() {
 
   if (assessment.overall && !state.overall[assessment.id]) {
     setPanelStatus("請先填寫整體評分，再上傳紀錄。", "error");
-    return;
-  }
-
-  if (!meta.externalUser && !meta.patientRecordNumber) {
-    setPanelStatus(
-      "請輸入四院共用病歷號碼後五碼；若不是四院病例，請勾選非四院使用。",
-      "error"
-    );
     return;
   }
 
