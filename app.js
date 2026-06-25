@@ -515,7 +515,7 @@ function clearActiveAssessment() {
 
 function render() {
   const active = getActiveAssessment();
-  document.title = `${active.shortTitle} | 凝視犬貓生活品質評估`;
+  document.title = `${active.shortTitle} | 犬貓生活品質評估`;
   ensureAssessmentState(active.id);
   ensureMetaState(active.id);
 
@@ -524,7 +524,7 @@ function render() {
       <div class="header-inner">
         <img class="brand-art" src="/assets/pet-qol-illustration.png" alt="" />
         <div>
-          <h1 class="site-title">凝視犬貓生活品質評估</h1>
+          <h1 class="site-title">犬貓生活品質評估</h1>
           <p class="site-subtitle">四份犬貓生活品質量表整合在同一個公開工具，支援手機填寫、自動計分、列印與 PDF 儲存。</p>
         </div>
       </div>
@@ -915,7 +915,7 @@ function buildSummaryText() {
   const stats = getStats(assessment);
   const meta = state.meta[assessment.id] || {};
   const lines = [
-    "凝視犬貓生活品質評估",
+    "犬貓生活品質評估",
     assessment.title,
     meta.petName ? `寵物姓名或代號：${meta.petName}` : "",
     meta.date ? `填寫日期：${meta.date}` : "",
