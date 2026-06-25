@@ -181,6 +181,53 @@ a {
   font-size: 0.98rem;
 }
 
+.qr-share {
+  display: grid;
+  grid-template-columns: 118px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-muted);
+}
+
+.qr-image {
+  width: 112px;
+  height: 112px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #ffffff;
+}
+
+.qr-copy h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+
+.qr-copy p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.qr-url {
+  display: inline-block;
+  max-width: 100%;
+  margin-top: 8px;
+  color: var(--accent-strong);
+  font-size: 0.9rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.qr-note {
+  color: var(--amber) !important;
+  font-weight: 800;
+}
+
 .scale-guide {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
@@ -642,6 +689,16 @@ a {
   .notes-block,
   .source-block {
     padding: 14px;
+  }
+
+  .qr-share {
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .qr-image {
+    width: 90px;
+    height: 90px;
   }
 
   .assessment-title {

@@ -561,6 +561,7 @@ function renderAssessment(assessment) {
       <p class="assessment-subtitle">${escapeHtml(assessment.subtitle)}</p>
       <p class="intro">${escapeHtml(assessment.intro)}</p>
       <p class="notice">此工具用於居家觀察、追蹤與就診討論，不取代獸醫師診斷或治療建議。資料會先保存在目前裝置的瀏覽器；只有按下「上傳紀錄」時，才會送到凝視犬貓專科醫院的紀錄系統。</p>
+      ${renderQrShareBlock(assessment)}
       <div class="scale-guide" aria-label="分數說明">
         ${renderScaleGuide(assessment)}
       </div>
@@ -584,6 +585,29 @@ function renderAssessment(assessment) {
     ${assessment.overall ? renderOverallBlock(assessment) : ""}
     ${renderNotesBlock(assessment)}
     ${renderSourceBlock(assessment)}
+  `;
+}
+
+function renderQrShareBlock(assessment) {
+  const shareUrl = getAssessmentUrl(assessment.id);
+  const localNote = isLocalPreview()
+    ? `<p class="qr-note">目前是本機預覽網址；正式上線後，QR Code 會自動改成公開網址。</p>`
+    : "";
+
+  return `
+    <div class="qr-share" aria-label="此量表 QR Code">
+      <img
+        class="qr-image"
+        src="${escapeAttribute(getQrCodeUrl(shareUrl))}"
+        alt="掃描開啟 ${escapeAttribute(assessment.shortTitle)}"
+      />
+      <div class="qr-copy">
+        <h3>手機掃描填寫此量表</h3>
+        <p>診間可開啟這個分頁，讓家長掃描後直接進入「${escapeHtml(assessment.shortTitle)}」。</p>
+        <a class="qr-url" href="${escapeAttribute(shareUrl)}" target="_blank" rel="noopener">${escapeHtml(shareUrl)}</a>
+        ${localNote}
+      </div>
+    </div>
   `;
 }
 
@@ -904,6 +928,20 @@ function scoreLabelFor(assessment, item, value) {
     if (value === assessment.scale.max) return "負面狀態不明顯";
   }
   return assessment.scale.labels[value] || `${value} 分`;
+}
+
+function getAssessmentUrl(assessmentId) {
+  return new URL(`/${assessmentId}/`, window.location.origin).href;
+}
+
+function getQrCodeUrl(url) {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=12&data=${encodeURIComponent(
+    url
+  )}`;
+}
+
+function isLocalPreview() {
+  return ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
 }
 
 function range(min, max) {
