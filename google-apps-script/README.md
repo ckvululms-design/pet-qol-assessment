@@ -46,4 +46,13 @@
 - `GOOGLE_SHEET_ID`
 - `GOOGLE_DRIVE_FOLDER_ID`
 
+Apps Script 會在 `GOOGLE_DRIVE_FOLDER_ID` 指向的共用資料夾內，自動依問卷存到以下子資料夾；若子資料夾不存在，會自動建立：
+
+- `FETCH`
+- `Dog HRQL`
+- `Cat QOL`
+- `Cancer HRQoL`
+- `CCDR`
+- `CADES`
+
 設定後請重新部署 Vercel。

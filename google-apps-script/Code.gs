@@ -21,6 +21,15 @@ const SHEET_HEADERS = [
   "notes",
 ];
 
+const ASSESSMENT_FOLDER_NAMES = {
+  "dog-fetch": "FETCH",
+  "dog-hrql": "Dog HRQL",
+  "cat-qol": "Cat QOL",
+  "cancer-qol": "Cancer HRQoL",
+  "dog-ccdr": "CCDR",
+  "dog-cades": "CADES",
+};
+
 function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents || "{}");
@@ -32,7 +41,7 @@ function doPost(e) {
     }
 
     const config = getConfig_(payload.config || {});
-    const folder = DriveApp.getFolderById(getFolderId_(config, record.assessmentId));
+    const folder = getTargetFolder_(config, record.assessmentId);
     const fileBaseName = buildFileBaseName_(record);
     const pdf = createPdf_(folder, fileBaseName, renderRecordHtml_(record, payload.firebaseRecordId || ""));
 
@@ -90,8 +99,18 @@ function getConfig_(requestConfig) {
   return config;
 }
 
-function getFolderId_(config, assessmentId) {
-  return config.folders[assessmentId] || config.defaultFolderId;
+function getTargetFolder_(config, assessmentId) {
+  const assessmentFolderId = config.folders[assessmentId];
+  if (assessmentFolderId) return DriveApp.getFolderById(assessmentFolderId);
+
+  const parentFolder = DriveApp.getFolderById(config.defaultFolderId);
+  const folderName = ASSESSMENT_FOLDER_NAMES[assessmentId];
+  if (!folderName) return parentFolder;
+
+  const folders = parentFolder.getFoldersByName(folderName);
+  if (folders.hasNext()) return folders.next();
+
+  return parentFolder.createFolder(folderName);
 }
 
 function getSheet_(sheetId, sheetName) {

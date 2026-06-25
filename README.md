@@ -66,7 +66,7 @@ match /qolRecords/{recordId} {
 `api/export-record.js` 會在 Vercel 上作為後端 API 使用。家長按下「上傳紀錄」後，前端先寫入 Firebase，再呼叫 `/api/export-record`，由 Vercel 轉送到 Google Apps Script Web App：
 
 - 追加一列到 Google Sheet
-- 在 Google Drive 資料夾建立 PDF
+- 在 Google Drive 共用資料夾內，依問卷自動存到 `FETCH`、`Dog HRQL`、`Cat QOL`、`Cancer HRQoL`、`CCDR`、`CADES` 子資料夾
 - 檔名包含日期、問卷、動物名、病歷號碼或非四院標記，以及總分摘要
 
 Apps Script 程式碼在 `google-apps-script/Code.gs`。請在 Google Apps Script 新專案貼上該檔內容，部署成 Web App，設定：
