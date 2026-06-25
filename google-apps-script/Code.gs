@@ -21,7 +21,9 @@ const SHEET_HEADERS = [
   "notes",
 ];
 
-const ASSESSMENT_FOLDER_NAMES = {
+const DEFAULT_RECORDS_SHEET_NAME = "Records";
+
+const ASSESSMENT_EXPORT_NAMES = {
   "dog-fetch": "FETCH",
   "dog-hrql": "Dog HRQL",
   "cat-qol": "Cat QOL",
@@ -45,7 +47,7 @@ function doPost(e) {
     const fileBaseName = buildFileBaseName_(record);
     const pdf = createPdf_(folder, fileBaseName, renderRecordHtml_(record, payload.firebaseRecordId || ""));
 
-    const sheet = getSheet_(config.sheetId, config.sheetName);
+    const sheet = getSheet_(config.sheetId, getAssessmentSheetName_(config, record.assessmentId));
     const row = buildSheetRow_(record, payload.firebaseRecordId || "", pdf);
     sheet.appendRow(row);
 
@@ -78,7 +80,7 @@ function getConfig_(requestConfig) {
   const props = PropertiesService.getScriptProperties();
   const config = {
     sheetId: requestConfig.sheetId || props.getProperty("SHEET_ID"),
-    sheetName: requestConfig.sheetName || props.getProperty("SHEET_NAME") || "Records",
+    sheetName: requestConfig.sheetName || props.getProperty("SHEET_NAME") || DEFAULT_RECORDS_SHEET_NAME,
     defaultFolderId: requestConfig.defaultFolderId || props.getProperty("DRIVE_FOLDER_ID"),
     folders: {
       "dog-fetch": requestConfig.folders?.["dog-fetch"] || props.getProperty("DRIVE_FOLDER_DOG_FETCH"),
@@ -104,13 +106,17 @@ function getTargetFolder_(config, assessmentId) {
   if (assessmentFolderId) return DriveApp.getFolderById(assessmentFolderId);
 
   const parentFolder = DriveApp.getFolderById(config.defaultFolderId);
-  const folderName = ASSESSMENT_FOLDER_NAMES[assessmentId];
+  const folderName = ASSESSMENT_EXPORT_NAMES[assessmentId];
   if (!folderName) return parentFolder;
 
   const folders = parentFolder.getFoldersByName(folderName);
   if (folders.hasNext()) return folders.next();
 
   return parentFolder.createFolder(folderName);
+}
+
+function getAssessmentSheetName_(config, assessmentId) {
+  return ASSESSMENT_EXPORT_NAMES[assessmentId] || config.sheetName || DEFAULT_RECORDS_SHEET_NAME;
 }
 
 function getSheet_(sheetId, sheetName) {
@@ -124,6 +130,95 @@ function getSheet_(sheetId, sheetName) {
   }
 
   return sheet;
+}
+
+function migrateRecordsSheetToAssessmentTabs() {
+  const sheetId = PropertiesService.getScriptProperties().getProperty("SHEET_ID");
+  if (!sheetId) {
+    throw new Error("請先在 Script Properties 設定 SHEET_ID，再執行 migrateRecordsSheetToAssessmentTabs。");
+  }
+
+  const spreadsheet = SpreadsheetApp.openById(sheetId);
+  const sourceSheet = spreadsheet.getSheetByName(DEFAULT_RECORDS_SHEET_NAME);
+  if (!sourceSheet) {
+    throw new Error(`找不到 ${DEFAULT_RECORDS_SHEET_NAME} 分頁。`);
+  }
+
+  const values = sourceSheet.getDataRange().getValues();
+  if (values.length <= 1) {
+    return { copied: 0, skipped: 0, message: "Records 分頁沒有可搬移的資料列。" };
+  }
+
+  const headers = values[0];
+  const assessmentIndex = headers.indexOf("assessmentId");
+  if (assessmentIndex === -1) {
+    throw new Error("Records 分頁找不到 assessmentId 欄位。");
+  }
+
+  const targetCache = {};
+  let copied = 0;
+  let skipped = 0;
+
+  values.slice(1).forEach((row) => {
+    const targetSheetName = ASSESSMENT_EXPORT_NAMES[row[assessmentIndex]];
+    if (!targetSheetName) {
+      skipped += 1;
+      return;
+    }
+
+    if (!targetCache[targetSheetName]) {
+      const sheet = getSheet_(sheetId, targetSheetName);
+      targetCache[targetSheetName] = {
+        sheet,
+        keys: getExistingRowKeys_(sheet, headers),
+      };
+    }
+
+    const cache = targetCache[targetSheetName];
+    const rowKey = makeMigrationRowKey_(row, headers);
+    if (cache.keys.has(rowKey)) {
+      skipped += 1;
+      return;
+    }
+
+    cache.sheet.appendRow(row);
+    cache.keys.add(rowKey);
+    copied += 1;
+  });
+
+  const result = { copied, skipped, message: "已完成 Records 到各問卷分頁的複製；原 Records 分頁會保留。" };
+  Logger.log(JSON.stringify(result));
+  return result;
+}
+
+function getExistingRowKeys_(sheet, headers) {
+  const values = sheet.getDataRange().getValues();
+  const keys = new Set();
+  values.slice(1).forEach((row) => keys.add(makeMigrationRowKey_(row, headers)));
+  return keys;
+}
+
+function makeMigrationRowKey_(row, headers) {
+  const firebaseRecordId = getCellByHeader_(row, headers, "firebaseRecordId");
+  if (firebaseRecordId) return `firebase:${firebaseRecordId}`;
+
+  return [
+    "createdAt",
+    "assessmentId",
+    "petNameOrCode",
+    "patientRecordNumber",
+    "totalScore",
+    "maxScore",
+  ]
+    .map((header) => getCellByHeader_(row, headers, header))
+    .join("|");
+}
+
+function getCellByHeader_(row, headers, header) {
+  const index = headers.indexOf(header);
+  if (index === -1) return "";
+  const value = row[index];
+  return value === undefined || value === null ? "" : value;
 }
 
 function createPdf_(folder, fileBaseName, html) {

@@ -35,7 +35,7 @@
 - 支援列印 / 儲存 PDF
 - 支援複製摘要與複製目前量表連結
 - 支援使用者主動上傳完整紀錄到 Firebase Firestore 的 `qolRecords`
-- 可透過 Vercel API 匯出到 Google Sheet，並在 Google Drive 建立每次填寫的 PDF
+- 可透過 Vercel API 匯出到 Google Sheet 的各問卷分頁，並在 Google Drive 建立每次填寫的 PDF
 - 未按下「上傳紀錄」前，資料只保存在使用者目前裝置的瀏覽器
 
 ## Firebase
@@ -65,7 +65,7 @@ match /qolRecords/{recordId} {
 
 `api/export-record.js` 會在 Vercel 上作為後端 API 使用。家長按下「上傳紀錄」後，前端先寫入 Firebase，再呼叫 `/api/export-record`，由 Vercel 轉送到 Google Apps Script Web App：
 
-- 追加一列到 Google Sheet
+- 依問卷追加一列到 Google Sheet 的 `FETCH`、`Dog HRQL`、`Cat QOL`、`Cancer HRQoL`、`CCDR`、`CADES` 分頁
 - 在 Google Drive 共用資料夾內，依問卷自動存到 `FETCH`、`Dog HRQL`、`Cat QOL`、`Cancer HRQoL`、`CCDR`、`CADES` 子資料夾
 - 檔名包含日期、問卷、動物名、病歷號碼或非四院標記，以及總分摘要
 
@@ -79,7 +79,7 @@ Apps Script 程式碼在 `google-apps-script/Code.gs`。請在 Google Apps Scrip
 - `GOOGLE_APPS_SCRIPT_WEBAPP_URL`
 - `GOOGLE_APPS_SCRIPT_SECRET`，建議設定，也要在 Apps Script Script Properties 用同樣值設定 `EXPORT_SECRET`
 - `GOOGLE_SHEET_ID`
-- `GOOGLE_SHEET_NAME`，可省略，預設 `Records`
+- `GOOGLE_SHEET_NAME`，可省略；只有未知問卷才會使用，預設 `Records`
 - `GOOGLE_DRIVE_FOLDER_ID`
 
 若未來要依問卷分資料夾，可再設定：

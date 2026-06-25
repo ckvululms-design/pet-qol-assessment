@@ -18,7 +18,7 @@
 如果不想讓 Vercel 傳 Sheet/Drive 設定，也可以在這裡加：
 
 - `SHEET_ID`
-- `SHEET_NAME`
+- `SHEET_NAME`，可省略；只有未知問卷才會使用，預設 `Records`
 - `DRIVE_FOLDER_ID`
 
 目前 Vercel 已會傳 `GOOGLE_SHEET_ID` 和 `GOOGLE_DRIVE_FOLDER_ID`，所以通常只需要設定 `EXPORT_SECRET`。
@@ -46,7 +46,7 @@
 - `GOOGLE_SHEET_ID`
 - `GOOGLE_DRIVE_FOLDER_ID`
 
-Apps Script 會在 `GOOGLE_DRIVE_FOLDER_ID` 指向的共用資料夾內，自動依問卷存到以下子資料夾；若子資料夾不存在，會自動建立：
+Apps Script 會自動依問卷寫入以下 Google Sheet 分頁；若分頁不存在，會自動建立並加上表頭：
 
 - `FETCH`
 - `Dog HRQL`
@@ -54,5 +54,24 @@ Apps Script 會在 `GOOGLE_DRIVE_FOLDER_ID` 指向的共用資料夾內，自動
 - `Cancer HRQoL`
 - `CCDR`
 - `CADES`
+
+Apps Script 也會在 `GOOGLE_DRIVE_FOLDER_ID` 指向的共用資料夾內，自動依問卷存到以下子資料夾；若子資料夾不存在，會自動建立：
+
+- `FETCH`
+- `Dog HRQL`
+- `Cat QOL`
+- `Cancer HRQoL`
+- `CCDR`
+- `CADES`
+
+## 搬移既有 Records 資料
+
+更新新版 `Code.gs` 後，新的上傳會直接進入六個問卷分頁。若之前已有資料落在 `Records` 分頁，可以選擇搬移一次：
+
+1. 到 Apps Script 的 Project Settings > Script properties，確認有 `SHEET_ID`
+2. 回到編輯器，在上方函式選單選 `migrateRecordsSheetToAssessmentTabs`
+3. 按 Run 並授權
+
+這個函式會把 `Records` 內既有資料複製到對應問卷分頁，會略過已存在的紀錄，原本的 `Records` 分頁會保留。
 
 設定後請重新部署 Vercel。
