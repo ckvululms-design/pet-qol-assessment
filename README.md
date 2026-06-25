@@ -63,19 +63,27 @@ match /qolRecords/{recordId} {
 
 ## Google Sheet / Drive 匯出
 
-`api/export-record.js` 會在 Vercel 上作為後端 API 使用。家長按下「上傳紀錄」後，前端先寫入 Firebase，再呼叫 `/api/export-record`：
+`api/export-record.js` 會在 Vercel 上作為後端 API 使用。家長按下「上傳紀錄」後，前端先寫入 Firebase，再呼叫 `/api/export-record`，由 Vercel 轉送到 Google Apps Script Web App：
 
 - 追加一列到 Google Sheet
-- 依問卷類型放入不同 Google Drive 資料夾
+- 在 Google Drive 資料夾建立 PDF
 - 檔名包含日期、問卷、動物名、病歷號碼或非四院標記，以及總分摘要
+
+Apps Script 程式碼在 `google-apps-script/Code.gs`。請在 Google Apps Script 新專案貼上該檔內容，部署成 Web App，設定：
+
+- Execute as：`Me`
+- Who has access：`Anyone`
 
 需要在 Vercel 設定以下環境變數：
 
-- `GOOGLE_SERVICE_ACCOUNT_EMAIL`
-- `GOOGLE_PRIVATE_KEY`
+- `GOOGLE_APPS_SCRIPT_WEBAPP_URL`
+- `GOOGLE_APPS_SCRIPT_SECRET`，建議設定，也要在 Apps Script Script Properties 用同樣值設定 `EXPORT_SECRET`
 - `GOOGLE_SHEET_ID`
 - `GOOGLE_SHEET_NAME`，可省略，預設 `Records`
-- `GOOGLE_DRIVE_FOLDER_ID`，所有問卷共用資料夾，可省略
+- `GOOGLE_DRIVE_FOLDER_ID`
+
+若未來要依問卷分資料夾，可再設定：
+
 - `GOOGLE_DRIVE_FOLDER_DOG_FETCH`
 - `GOOGLE_DRIVE_FOLDER_DOG_HRQL`
 - `GOOGLE_DRIVE_FOLDER_CAT_QOL`
@@ -83,7 +91,7 @@ match /qolRecords/{recordId} {
 - `GOOGLE_DRIVE_FOLDER_DOG_CCDR`
 - `GOOGLE_DRIVE_FOLDER_DOG_CADES`
 
-若沒有設定共用 `GOOGLE_DRIVE_FOLDER_ID`，至少要設定各問卷自己的資料夾 ID。Google Sheet 與 Drive 資料夾都需要把 service account email 加為 Editor。
+舊的 service account 環境變數已不再需要用於 Sheet / Drive 匯出。
 
 ## Vercel 部署
 
@@ -95,4 +103,4 @@ match /qolRecords/{recordId} {
 4. Build Command 留空。
 5. Output Directory 留空或使用專案根目錄。
 
-`vercel.json` 已設定四個路由都回到 `index.html`，使用者可直接打開任一量表網址。
+`vercel.json` 已設定六個路由都回到 `index.html`，使用者可直接打開任一量表網址。
