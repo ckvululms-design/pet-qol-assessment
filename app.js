@@ -354,6 +354,8 @@ const ASSESSMENTS = [
 const STORAGE_KEY = "gaze-pet-qol-state-v1";
 const app = document.querySelector("#app");
 const assessmentById = new Map(ASSESSMENTS.map((assessment) => [assessment.id, assessment]));
+let panelStatus = "";
+let panelStatusKind = "success";
 
 const state = loadState();
 state.activeId = getInitialAssessmentId();
@@ -391,6 +393,10 @@ app.addEventListener("click", async (event) => {
 
   if (action === "copy-link") {
     await copyText(window.location.href);
+  }
+
+  if (action === "upload-firebase") {
+    await uploadActiveRecord();
   }
 });
 
@@ -554,7 +560,7 @@ function renderAssessment(assessment) {
       <h2 id="assessment-title" class="assessment-title">${escapeHtml(assessment.title)}</h2>
       <p class="assessment-subtitle">${escapeHtml(assessment.subtitle)}</p>
       <p class="intro">${escapeHtml(assessment.intro)}</p>
-      <p class="notice">此工具用於居家觀察、追蹤與就診討論，不取代獸醫師診斷或治療建議。資料只會保存在目前裝置的瀏覽器，不會上傳到伺服器。</p>
+      <p class="notice">此工具用於居家觀察、追蹤與就診討論，不取代獸醫師診斷或治療建議。資料會先保存在目前裝置的瀏覽器；只有按下「上傳紀錄」時，才會送到凝視犬貓專科醫院的 Firebase。</p>
       <div class="scale-guide" aria-label="分數說明">
         ${renderScaleGuide(assessment)}
       </div>
@@ -794,12 +800,13 @@ function renderScorePanel() {
         .join("")}
     </div>
     <div class="action-row">
+      <button class="action-button" type="button" data-action="upload-firebase">上傳紀錄</button>
       <button class="action-button" type="button" data-action="print">列印 / 儲存 PDF</button>
       <button class="action-button secondary" type="button" data-action="copy-summary">複製摘要</button>
       <button class="action-button secondary" type="button" data-action="copy-link">複製連結</button>
       <button class="action-button warning" type="button" data-action="reset">重新填寫</button>
     </div>
-    <div class="copy-status" id="copy-status" role="status"></div>
+    <div class="copy-status ${panelStatusKind === "error" ? "error" : ""}" id="copy-status" role="status">${escapeHtml(panelStatus)}</div>
   `;
 }
 
@@ -935,13 +942,114 @@ function buildSummaryText() {
   return lines.join("\n");
 }
 
+async function uploadActiveRecord() {
+  const assessment = getActiveAssessment();
+  const stats = getStats(assessment);
+
+  if (stats.completed < stats.itemCount) {
+    setPanelStatus(
+      `尚有 ${stats.itemCount - stats.completed} 題未完成，請完成後再上傳。`,
+      "error"
+    );
+    return;
+  }
+
+  if (assessment.overall && !state.overall[assessment.id]) {
+    setPanelStatus("請先填寫整體評分，再上傳紀錄。", "error");
+    return;
+  }
+
+  if (!window.qolFirebase?.submitQolRecord) {
+    setPanelStatus("Firebase 尚未載入完成，請稍候再試。", "error");
+    return;
+  }
+
+  setPanelStatus("正在上傳紀錄...", "success");
+
+  try {
+    const result = await window.qolFirebase.submitQolRecord(
+      buildFirebaseRecord(assessment, stats)
+    );
+    setPanelStatus(`已上傳到 Firebase，紀錄 ID：${result.id}`, "success");
+  } catch (error) {
+    console.error(error);
+    setPanelStatus(
+      "上傳失敗。可能是 Firestore 規則尚未允許 qolRecords 新增紀錄。",
+      "error"
+    );
+  }
+}
+
+function buildFirebaseRecord(assessment, stats) {
+  const meta = state.meta[assessment.id] || {};
+  const answers = state.answers[assessment.id] || {};
+  const normalizedAnswers = [];
+  let itemNumber = 1;
+
+  assessment.categories.forEach((category, categoryIndex) => {
+    category.items.forEach((rawItem) => {
+      const item = normalizeItem(rawItem);
+      const itemId = `${categoryIndex}-${itemNumber}`;
+      normalizedAnswers.push({
+        itemId,
+        itemNumber,
+        category: category.name,
+        categoryEnglish: category.english,
+        question: item.text,
+        reverse: Boolean(item.reverse),
+        score: answers[itemId],
+      });
+      itemNumber += 1;
+    });
+  });
+
+  return {
+    schemaVersion: 1,
+    assessmentId: assessment.id,
+    assessmentTitle: assessment.title,
+    assessmentShortTitle: assessment.shortTitle,
+    petNameOrCode: meta.petName || "",
+    assessmentDate: meta.date || "",
+    totalScore: stats.total,
+    minScore: stats.min,
+    maxScore: stats.max,
+    qualityPercent: stats.qualityPercent,
+    completionPercent: stats.completionPercent,
+    completedItems: stats.completed,
+    totalItems: stats.itemCount,
+    overallScore: state.overall[assessment.id] || null,
+    overallMax: assessment.overall?.max || null,
+    interpretation: stats.interpretation,
+    categoryScores: stats.categories,
+    answers: normalizedAnswers,
+    notes: state.notes[assessment.id] || "",
+    userAgent: navigator.userAgent,
+  };
+}
+
+function setPanelStatus(message, kind = "success") {
+  panelStatus = message;
+  panelStatusKind = kind;
+  renderScorePanel();
+}
+
 async function copyText(text) {
   const status = document.querySelector("#copy-status");
   try {
     await navigator.clipboard.writeText(text);
-    if (status) status.textContent = "已複製。";
+    panelStatus = "已複製。";
+    panelStatusKind = "success";
+    if (status) {
+      status.classList.remove("error");
+      status.textContent = panelStatus;
+    }
   } catch {
-    if (status) status.textContent = "無法自動複製，請改用瀏覽器的分享或列印功能。";
+    panelStatus = "無法自動複製，請改用瀏覽器的分享或列印功能。";
+    panelStatusKind = "error";
+    if (status) {
+      status.classList.add("error");
+      status.textContent = panelStatus;
+    }
   }
 }
 

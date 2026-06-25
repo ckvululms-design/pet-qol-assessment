@@ -28,7 +28,31 @@
 - 支援備註、寵物姓名或代號、填寫日期
 - 支援列印 / 儲存 PDF
 - 支援複製摘要與複製目前量表連結
-- 不需要後端，資料只保存在使用者目前裝置的瀏覽器
+- 支援使用者主動上傳完整紀錄到 Firebase Firestore 的 `qolRecords`
+- 未按下「上傳紀錄」前，資料只保存在使用者目前裝置的瀏覽器
+
+## Firebase
+
+本專案使用 Firebase 專案 `gaze-cardiology-4e707`：
+
+- Firebase Web App：`凝視心臟科候補系統`
+- Firestore database：`(default)`，位置 `asia-east1`，Native mode
+- Collection：`qolRecords`
+- Authentication：使用匿名登入寫入紀錄
+
+建議在既有 Firestore rules 中額外加入 `qolRecords` 的 create-only 規則，並保留原本候補系統規則：
+
+```txt
+match /qolRecords/{recordId} {
+  allow create: if request.auth != null
+    && request.resource.data.anonymousUid == request.auth.uid
+    && request.resource.data.schemaVersion == 1
+    && request.resource.data.assessmentId is string
+    && request.resource.data.answers is list
+    && request.resource.data.answers.size() <= 40;
+  allow read, update, delete: if false;
+}
+```
 
 ## Vercel 部署
 
