@@ -560,7 +560,7 @@ function renderAssessment(assessment) {
       <h2 id="assessment-title" class="assessment-title">${escapeHtml(assessment.title)}</h2>
       <p class="assessment-subtitle">${escapeHtml(assessment.subtitle)}</p>
       <p class="intro">${escapeHtml(assessment.intro)}</p>
-      <p class="notice">此工具用於居家觀察、追蹤與就診討論，不取代獸醫師診斷或治療建議。資料會先保存在目前裝置的瀏覽器；只有按下「上傳紀錄」時，才會送到凝視犬貓專科醫院的 Firebase。</p>
+      <p class="notice">此工具用於居家觀察、追蹤與就診討論，不取代獸醫師診斷或治療建議。資料會先保存在目前裝置的瀏覽器；只有按下「上傳紀錄」時，才會送到凝視犬貓專科醫院的紀錄系統。</p>
       <div class="scale-guide" aria-label="分數說明">
         ${renderScaleGuide(assessment)}
       </div>
