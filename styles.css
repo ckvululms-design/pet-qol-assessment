@@ -399,6 +399,12 @@ a {
   font-weight: 700;
 }
 
+.required-mark {
+  color: var(--rose);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
 .patient-input-wrap {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);

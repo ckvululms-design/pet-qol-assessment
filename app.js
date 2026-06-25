@@ -839,10 +839,10 @@ function renderAssessment(assessment) {
       </div>
       <div class="meta-grid">
         <label class="field-label">
-          寵物姓名或代號
+          <span>寵物姓名或代號 <span class="required-mark">必填</span></span>
           <input class="text-field" type="text" data-meta="petName" data-assessment="${assessment.id}" value="${escapeAttribute(
             meta.petName || ""
-          )}" placeholder="選填" />
+          )}" placeholder="請填寫寵物姓名或代號" required aria-required="true" />
         </label>
         <label class="field-label">
           四院共用病歷號碼後五碼
@@ -1390,10 +1390,20 @@ function getMetaDisplay(assessmentId) {
   const patientDigits = normalizePatientDigits(meta.patientDigits || "");
   return {
     ...meta,
+    petName: String(meta.petName || "").trim(),
     patientDigits,
     patientRecordNumber: formatPatientRecordNumber(patientDigits),
     externalUser: Boolean(meta.externalUser),
   };
+}
+
+function focusMetaField(assessmentId, metaName) {
+  const field = document.querySelector(
+    `[data-assessment="${CSS.escape(assessmentId)}"][data-meta="${CSS.escape(metaName)}"]`
+  );
+  if (!field) return;
+  field.focus();
+  field.reportValidity?.();
 }
 
 function buildSummaryText() {
@@ -1434,6 +1444,12 @@ async function uploadActiveRecord() {
   const assessment = getActiveAssessment();
   const stats = getStats(assessment);
   const meta = getMetaDisplay(assessment.id);
+
+  if (!meta.petName) {
+    setPanelStatus("請先填寫寵物姓名或代號。", "error");
+    focusMetaField(assessment.id, "petName");
+    return;
+  }
 
   if (stats.completed < stats.itemCount) {
     setPanelStatus(
