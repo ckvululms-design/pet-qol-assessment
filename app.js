@@ -2,6 +2,8 @@ const ASSESSMENTS = [
   {
     id: "dog-fetch",
     shortTitle: "狗心臟病 FETCH",
+    navTitle: "狗心臟病生活品質",
+    navRef: "FETCH",
     title: "狗心臟病健康相關生活品質 (FETCH) 評估",
     subtitle: "心臟病對過去 7 天生活品質影響程度",
     intro:
@@ -83,6 +85,8 @@ const ASSESSMENTS = [
   {
     id: "dog-hrql",
     shortTitle: "狗 HRQL",
+    navTitle: "狗整體健康生活品質",
+    navRef: "VetMetrica HRQL",
     title: "狗健康相關生活品質 (HRQL) 評估",
     subtitle: "四維度行為特徵量表 (VetMetrica 框架)",
     intro:
@@ -158,6 +162,8 @@ const ASSESSMENTS = [
   {
     id: "cat-qol",
     shortTitle: "貓咪高齡安寧 QOL",
+    navTitle: "貓高齡/安寧照護",
+    navRef: "AAFP 2021/2023",
     title: "貓咪高齡與安寧照護 (QOL) 評估",
     subtitle: "依據 2023 AAFP 安寧緩和與 2021 高齡照護指南設計",
     intro:
@@ -245,6 +251,8 @@ const ASSESSMENTS = [
   {
     id: "cancer-qol",
     shortTitle: "癌症動物 HRQoL",
+    navTitle: "癌症犬貓生活品質",
+    navRef: "Lynch 2010 HRQoL",
     title: "癌症動物健康相關生活品質 (HRQoL) 評估",
     subtitle: "犬貓癌症照護生活品質追蹤",
     intro:
@@ -533,9 +541,14 @@ function render() {
       <nav class="tabs" aria-label="量表選擇">
         ${ASSESSMENTS.map(
           (assessment) => `
-            <a class="tab-link" href="/${assessment.id}" data-route="${assessment.id}" ${
+            <a class="tab-link" href="/${assessment.id}" data-route="${assessment.id}" title="${escapeAttribute(
+            `${assessment.navTitle} (${assessment.navRef})`
+          )}" ${
             assessment.id === active.id ? 'aria-current="page"' : ""
-          }>${escapeHtml(assessment.shortTitle)}</a>
+          }>
+              <span class="tab-title">${escapeHtml(assessment.navTitle)}</span>
+              <span class="tab-ref">${escapeHtml(assessment.navRef)}</span>
+            </a>
           `
         ).join("")}
       </nav>
