@@ -795,7 +795,7 @@ function render() {
         <img class="brand-art" src="/assets/pet-qol-illustration.png" alt="" />
         <div>
           <h1 class="site-title">犬貓生活品質評估</h1>
-          <p class="site-subtitle">六份犬貓生活品質與認知功能量表整合在同一個公開工具，支援手機填寫、自動計分、列印與 PDF 儲存。</p>
+          <p class="site-subtitle">請依照獸醫師建議選擇適合的量表填寫，結果可作為居家觀察、追蹤變化與回診討論的參考。</p>
         </div>
       </div>
     </header>
