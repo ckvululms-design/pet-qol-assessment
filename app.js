@@ -509,7 +509,7 @@ const ASSESSMENTS = [
     notesPrompt:
       "可記錄疼痛、視力/聽力退化、泌尿道、內分泌、神經疾病、藥物或環境改變等可能影響認知表現的因素。",
     source:
-      "資料來源與框架參考：Canine Cognitive Dysfunction Rating Scale (CCDR)。本表依使用者提供之 CCDR/CADES 犬認知功能障礙評分表 PDF 整理為互動化追蹤工具。",
+      "資料來源：Salvin HE, McGreevy PD, Sachdev PS, Valenzuela MJ. The canine cognitive dysfunction rating scale (CCDR): A data-driven and ecologically relevant assessment tool. The Veterinary Journal. 2011;188(3):331-336. https://doi.org/10.1016/j.tvjl.2010.05.014；本頁依使用者提供之家長勾選版 CCDR/CADES PDF 與原始 CCDR 架構整理為互動化追蹤工具。",
   },
   {
     id: "dog-cades",
@@ -587,7 +587,7 @@ const ASSESSMENTS = [
     notesPrompt:
       "可記錄夜間不安、迷失方向、亂尿亂便、互動改變，以及疼痛、視聽力、血壓、內分泌、腎肝、泌尿、神經或藥物因素。",
     source:
-      "資料來源與框架參考：CAnine DEmentia Scale (CADES)。本表依使用者提供之 CCDR/CADES 犬認知功能障礙評分表 PDF 整理為互動化追蹤工具。",
+      "資料來源：Madari A, Farbakova J, Katina S, Smolek T, Novak P, Weissova T, Novak M, Zilka N. Assessment of severity and progression of canine cognitive dysfunction syndrome using the CAnine DEmentia Scale (CADES). Applied Animal Behaviour Science. 2015;171:138-145. https://doi.org/10.1016/j.applanim.2015.08.034；本頁依使用者提供之家長勾選版 CCDR/CADES PDF 與原始 CADES 架構整理為互動化追蹤工具。",
   },
 ];
 
@@ -1266,9 +1266,9 @@ function getStats(assessment) {
   );
   const completionPercent = Math.round((completed / itemCount) * 100);
   const normalized =
-    max === min ? 0 : Math.round(((total - min) / (max - min)) * 100);
+    max === min ? 0 : clampPercent(Math.round(((total - min) / (max - min)) * 100));
   const qualityPercent =
-    assessment.direction === "lower" ? Math.max(0, 100 - normalized) : normalized;
+    assessment.direction === "lower" ? clampPercent(100 - normalized) : normalized;
 
   return {
     total,
@@ -1364,6 +1364,10 @@ function getScaleMin(scale) {
 
 function getScaleMax(scale) {
   return Math.max(...getScaleValues(scale));
+}
+
+function clampPercent(value) {
+  return Math.min(100, Math.max(0, value));
 }
 
 function range(min, max) {
