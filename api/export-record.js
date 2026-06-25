@@ -339,7 +339,7 @@ function buildSheetRow(record, firebaseRecordId, pdf) {
 function buildFileBaseName(record) {
   const petName = sanitizeFilePart(record.petNameOrCode || "未命名動物");
   const patient = sanitizeFilePart(
-    record.patientRecordNumber || (record.isExternalUser ? "非本院" : "無病歷號")
+    record.patientRecordNumber || (record.isExternalUser ? "非四院" : "無病歷號")
   );
   const date = sanitizeFilePart(record.assessmentDate || new Date().toISOString().slice(0, 10));
   const score = `${record.totalScore || 0}-${record.maxScore || 0}`;
@@ -393,7 +393,7 @@ function renderRecordHtml(record, firebaseRecordId) {
           <div class="label">Firebase ID</div><div>${escapeHtml(firebaseRecordId)}</div>
           <div class="label">填寫日期</div><div>${escapeHtml(record.assessmentDate || "")}</div>
           <div class="label">寵物姓名</div><div>${escapeHtml(record.petNameOrCode || "")}</div>
-          <div class="label">病歷號碼</div><div>${escapeHtml(record.patientRecordNumber || (record.isExternalUser ? "非本院使用者" : ""))}</div>
+          <div class="label">病歷號碼</div><div>${escapeHtml(record.patientRecordNumber || (record.isExternalUser ? "非四院共用病歷病例" : ""))}</div>
           <div class="label">總分</div><div class="score">${record.totalScore} / ${record.maxScore}</div>
           <div class="label">指標</div><div>${record.qualityPercent}%</div>
           <div class="label">解讀</div><div>${escapeHtml(record.interpretation || "")}</div>

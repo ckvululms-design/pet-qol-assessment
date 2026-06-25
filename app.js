@@ -828,7 +828,7 @@ function renderAssessment(assessment) {
           )}" placeholder="選填" />
         </label>
         <label class="field-label">
-          本院病歷號碼後五碼
+          四院共用病歷號碼後五碼
           <span class="patient-input-wrap">
             <span class="patient-prefix" aria-hidden="true">PT0</span>
             <input
@@ -842,7 +842,7 @@ function renderAssessment(assessment) {
               data-assessment="${assessment.id}"
               value="${escapeAttribute(meta.patientDigits || "")}"
               placeholder="12345"
-              aria-label="本院病歷號碼後五碼"
+              aria-label="四院共用病歷號碼後五碼"
             />
           </span>
         </label>
@@ -859,7 +859,10 @@ function renderAssessment(assessment) {
             data-assessment="${assessment.id}"
             ${meta.externalUser ? "checked" : ""}
           />
-          <span>非凝視犬貓專科醫院病例，僅使用公開工具。</span>
+          <span>
+            <strong>非四院共用病歷病例，僅使用公開工具。</strong>
+            <small>四院包含吉米哈利動物醫院、凝視犬貓專科醫院、狗意思犬專科醫院、凱特森貓專科醫院。</small>
+          </span>
         </label>
       </div>
       <div class="progress-block" id="progress-block"></div>
@@ -1325,7 +1328,7 @@ function buildSummaryText() {
     assessment.title,
     meta.petName ? `寵物姓名或代號：${meta.petName}` : "",
     meta.patientRecordNumber ? `病歷號碼：${meta.patientRecordNumber}` : "",
-    meta.externalUser ? "非本院病例：是" : "",
+    meta.externalUser ? "非四院共用病歷病例：是" : "",
     meta.date ? `填寫日期：${meta.date}` : "",
     `${assessment.totalLabel}：${stats.total} / ${stats.max}`,
     `${assessment.qualityLabel}：${stats.qualityPercent}%`,
@@ -1370,7 +1373,7 @@ async function uploadActiveRecord() {
 
   if (!meta.externalUser && !meta.patientRecordNumber) {
     setPanelStatus(
-      "請輸入本院病歷號碼後五碼；若不是本院病例，請勾選非本院使用。",
+      "請輸入四院共用病歷號碼後五碼；若不是四院病例，請勾選非四院使用。",
       "error"
     );
     return;

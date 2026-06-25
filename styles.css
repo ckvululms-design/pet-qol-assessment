@@ -345,6 +345,19 @@ a {
   accent-color: var(--accent);
 }
 
+.checkbox-field strong,
+.checkbox-field small {
+  display: block;
+}
+
+.checkbox-field small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
+  font-weight: 700;
+}
+
 .text-field,
 .notes-area {
   width: 100%;
