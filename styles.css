@@ -249,9 +249,27 @@ a {
 
 .scale-guide {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  grid-template-columns: 1fr;
   gap: 8px;
   margin-top: 18px;
+}
+
+.scale-guide-group {
+  display: grid;
+  gap: 8px;
+}
+
+.scale-guide-group h3 {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+.scale-guide-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  gap: 8px;
 }
 
 .scale-item {
@@ -277,6 +295,54 @@ a {
   color: var(--muted);
   font-size: 0.95rem;
   font-weight: 700;
+}
+
+.patient-input-wrap {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.patient-prefix {
+  display: grid;
+  align-items: center;
+  min-height: 46px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-right: 0;
+  border-radius: var(--radius) 0 0 var(--radius);
+  background: var(--surface-muted);
+  color: var(--accent-strong);
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.patient-digits {
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.checkbox-field {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-muted);
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.checkbox-field input {
+  width: 20px;
+  height: 20px;
+  margin: 2px 0 0;
+  accent-color: var(--accent);
 }
 
 .text-field,

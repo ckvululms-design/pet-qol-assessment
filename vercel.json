@@ -4,6 +4,8 @@
     { "source": "/dog-fetch", "destination": "/index.html" },
     { "source": "/dog-hrql", "destination": "/index.html" },
     { "source": "/cat-qol", "destination": "/index.html" },
-    { "source": "/cancer-qol", "destination": "/index.html" }
+    { "source": "/cancer-qol", "destination": "/index.html" },
+    { "source": "/dog-ccdr", "destination": "/index.html" },
+    { "source": "/dog-cades", "destination": "/index.html" }
   ]
 }

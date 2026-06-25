@@ -357,6 +357,238 @@ const ASSESSMENTS = [
     source:
       "資料來源：Lynch S, Savary-Bataille K, Leeuw B, Argyle DJ. Development of a questionnaire assessing health-related quality-of-life in dogs and cats with cancer. Veterinary and Comparative Oncology. First published 10 September 2010. https://doi.org/10.1111/j.1476-5829.2010.00244.x",
   },
+  {
+    id: "dog-ccdr",
+    shortTitle: "犬認知 CCDR",
+    navTitle: "犬認知功能篩檢",
+    navRef: "CCDR",
+    title: "犬認知功能障礙評分表 (CCDR)",
+    subtitle: "13 題，適合 CDS 初步篩檢與近 6 個月變化追蹤",
+    intro:
+      "請依照狗狗目前狀況與近 6 個月變化選擇最接近的描述。此量表用於整理疑似認知功能障礙相關表現，不能單獨診斷 CDS。",
+    direction: "lower",
+    totalLabel: "CCDR 總分",
+    qualityLabel: "認知穩定指標",
+    scale: {
+      min: 1,
+      max: 5,
+      labels: {
+        1: "從不 / 明顯減少",
+        2: "偶爾 / 稍微減少",
+        3: "有時 / 沒有改變",
+        4: "經常 / 稍微增加",
+        5: "非常頻繁 / 明顯增加",
+      },
+    },
+    scaleGuides: [
+      {
+        title: "第 1-6 題：目前行為頻率",
+        labels: {
+          1: "從不",
+          2: "每月一次",
+          3: "每週一次",
+          4: "每天一次",
+          5: "每天超過一次",
+        },
+      },
+      {
+        title: "第 7 題：找食物能力",
+        labels: {
+          1: "沒有困難，每次都找得到",
+          2: "偶爾困難",
+          3: "有時困難",
+          4: "多數時候困難",
+          5: "幾乎每次都找不到",
+        },
+      },
+      {
+        title: "第 8-12 題：與 6 個月前相比",
+        labels: {
+          1: "明顯減少",
+          2: "稍微減少",
+          3: "沒有改變",
+          4: "稍微增加",
+          5: "明顯增加",
+        },
+      },
+      {
+        title: "第 13 題：活動量變化",
+        labels: {
+          1: "明顯增加",
+          2: "稍微增加",
+          3: "沒有改變",
+          4: "稍微減少",
+          5: "明顯減少",
+        },
+      },
+    ],
+    categories: [
+      {
+        name: "目前行為頻率",
+        english: "Current behavior frequency",
+        scale: {
+          min: 1,
+          max: 5,
+          labels: {
+            1: "從不",
+            2: "每月一次",
+            3: "每週一次",
+            4: "每天一次",
+            5: "每天超過一次",
+          },
+        },
+        items: [
+          "是否會無目的地來回走動、繞圈，或漫無方向地徘徊？",
+          "是否會盯著牆壁或地板發呆？",
+          "是否會卡在物品後方，卻不知道如何繞出來？",
+          "是否會認不出熟悉的人或寵物？",
+          "是否會撞到牆壁或門？",
+          "被撫摸時，是否會走開，或刻意避免被摸？",
+        ],
+      },
+      {
+        name: "找食物能力",
+        english: "Food-finding ability",
+        scale: {
+          min: 1,
+          max: 5,
+          labels: {
+            1: "沒有困難，每次都找得到",
+            2: "偶爾困難",
+            3: "有時困難",
+            4: "多數時候困難",
+            5: "幾乎每次都找不到",
+          },
+        },
+        items: ["是否變得不容易找到掉在地上的食物？"],
+      },
+      {
+        name: "與 6 個月前相比",
+        english: "Compared with 6 months ago",
+        scale: {
+          min: 1,
+          max: 5,
+          labels: {
+            1: "明顯減少",
+            2: "稍微減少",
+            3: "沒有改變",
+            4: "稍微增加",
+            5: "明顯增加",
+          },
+        },
+        items: [
+          "與 6 個月前相比，是否更常無目的地來回走動、繞圈或徘徊？",
+          "與 6 個月前相比，是否更常盯著牆壁或地板發呆？",
+          "與 6 個月前相比，是否更常在原本會保持乾淨的地方尿尿或排便？",
+          { text: "與 6 個月前相比，是否更難找到掉在地上的食物？", weight: 2 },
+          { text: "與 6 個月前相比，是否更常認不出熟悉的人或寵物？", weight: 3 },
+        ],
+      },
+      {
+        name: "活動量變化",
+        english: "Activity change",
+        scale: {
+          min: 1,
+          max: 5,
+          labels: {
+            1: "明顯增加",
+            2: "稍微增加",
+            3: "沒有改變",
+            4: "稍微減少",
+            5: "明顯減少",
+          },
+        },
+        items: ["與 6 個月前相比，活動量是否下降？"],
+      },
+    ],
+    interpretationRanges: [
+      { max: 39, text: "通常正常範圍；若家長仍觀察到明顯變化，建議持續追蹤並排除其他疾病。" },
+      { min: 40, max: 49, text: "落在風險區，建議追蹤變化，並與獸醫師討論是否需要進一步評估。" },
+      { min: 50, text: "高度懷疑 CCD / CDS，建議整理結果並安排獸醫師進一步評估與鑑別診斷。" },
+    ],
+    notesPrompt:
+      "可記錄疼痛、視力/聽力退化、泌尿道、內分泌、神經疾病、藥物或環境改變等可能影響認知表現的因素。",
+    source:
+      "資料來源與框架參考：Canine Cognitive Dysfunction Rating Scale (CCDR)。本表依使用者提供之 CCDR/CADES 犬認知功能障礙評分表 PDF 整理為互動化追蹤工具。",
+  },
+  {
+    id: "dog-cades",
+    shortTitle: "犬認知 CADES",
+    navTitle: "犬認知退化分期",
+    navRef: "CADES",
+    title: "犬認知退化分期評分表 (CADES)",
+    subtitle: "17 題，4 大面向，適合 CDS 嚴重度分期與長期追蹤",
+    intro:
+      "請依照過去 6 個月內觀察到的頻率選擇分數。此量表較適合分期與追蹤，仍需搭配獸醫師評估與其他老年疾病鑑別。",
+    direction: "lower",
+    totalLabel: "CADES 總分",
+    qualityLabel: "認知穩定指標",
+    scale: {
+      min: 0,
+      max: 5,
+      values: [0, 2, 3, 4, 5],
+      labels: {
+        0: "從未觀察到",
+        2: "過去 6 個月內至少 1 次",
+        3: "每月至少 1 次",
+        4: "每月 2-4 次",
+        5: "每週數次",
+      },
+    },
+    categories: [
+      {
+        name: "空間定向",
+        english: "Spatial orientation",
+        items: [
+          "在熟悉環境中迷失方向，例如家中或熟悉戶外環境。",
+          "無法辨認熟悉的人或動物。",
+          "對熟悉物品出現異常反應，例如椅子、垃圾桶等。",
+          "白天無目的遊走，或顯得坐立不安。",
+          "原本已學會的任務能力下降。",
+        ],
+      },
+      {
+        name: "社交互動",
+        english: "Social interaction",
+        items: [
+          "與人或其他狗的互動改變，例如玩耍、被撫摸、迎接家人等。",
+          "個體行為改變，例如探索、玩耍或日常表現下降。",
+          "對指令的反應或學習新任務的能力下降。",
+          "易怒或焦慮增加。",
+          "出現攻擊行為。",
+        ],
+      },
+      {
+        name: "睡眠 - 覺醒",
+        english: "Sleep-wake cycle",
+        items: [
+          { text: "夜間異常活動，例如徘徊、發聲、坐立不安。", weight: 2 },
+          { text: "睡眠型態明顯改變，例如失眠與過度嗜睡之間轉換。", weight: 2 },
+        ],
+      },
+      {
+        name: "排泄習慣",
+        english: "House soiling",
+        items: [
+          "在家中隨機位置排泄。",
+          "在籠內或睡覺區排泄。",
+          "表達想排泄的訊號改變。",
+          "剛外出散步回來後，仍在室內排泄。",
+          "在不尋常的位置排泄，例如原本不會選擇的草地、水泥地等。",
+        ],
+      },
+    ],
+    interpretationRanges: [
+      { min: 0, max: 7, text: "分數落在正常老化範圍；建議保留本次結果作為後續追蹤基準。" },
+      { min: 8, max: 23, text: "分數符合輕度認知退化區間，建議追蹤頻率與生活作息變化。" },
+      { min: 24, max: 44, text: "分數符合中度認知退化區間，建議與獸醫師討論鑑別診斷與照護策略。" },
+      { min: 45, text: "分數符合重度認知退化區間，建議安排完整評估並討論生活品質與照護需求。" },
+    ],
+    notesPrompt:
+      "可記錄夜間不安、迷失方向、亂尿亂便、互動改變，以及疼痛、視聽力、血壓、內分泌、腎肝、泌尿、神經或藥物因素。",
+    source:
+      "資料來源與框架參考：CAnine DEmentia Scale (CADES)。本表依使用者提供之 CCDR/CADES 犬認知功能障礙評分表 PDF 整理為互動化追蹤工具。",
+  },
 ];
 
 const STORAGE_KEY = "gaze-pet-qol-state-v1";
@@ -426,6 +658,13 @@ app.addEventListener("change", (event) => {
     saveState();
     renderScorePanel();
   }
+
+  if (target.matches("[data-meta-check]")) {
+    const assessmentId = target.dataset.assessment;
+    ensureMetaState(assessmentId);
+    state.meta[assessmentId][target.dataset.metaCheck] = target.checked;
+    saveState();
+  }
 });
 
 app.addEventListener("input", (event) => {
@@ -440,6 +679,9 @@ app.addEventListener("input", (event) => {
 
   if (target.matches("[data-meta]")) {
     ensureMetaState(assessmentId);
+    if (target.dataset.meta === "patientDigits") {
+      target.value = normalizePatientDigits(target.value);
+    }
     state.meta[assessmentId][target.dataset.meta] = target.value;
     saveState();
   }
@@ -533,7 +775,7 @@ function render() {
         <img class="brand-art" src="/assets/pet-qol-illustration.png" alt="" />
         <div>
           <h1 class="site-title">犬貓生活品質評估</h1>
-          <p class="site-subtitle">四份犬貓生活品質量表整合在同一個公開工具，支援手機填寫、自動計分、列印與 PDF 儲存。</p>
+          <p class="site-subtitle">六份犬貓生活品質與認知功能量表整合在同一個公開工具，支援手機填寫、自動計分、列印與 PDF 儲存。</p>
         </div>
       </div>
     </header>
@@ -586,10 +828,38 @@ function renderAssessment(assessment) {
           )}" placeholder="選填" />
         </label>
         <label class="field-label">
+          本院病歷號碼後五碼
+          <span class="patient-input-wrap">
+            <span class="patient-prefix" aria-hidden="true">PT0</span>
+            <input
+              class="text-field patient-digits"
+              type="text"
+              inputmode="numeric"
+              autocomplete="off"
+              maxlength="5"
+              pattern="[0-9]{5}"
+              data-meta="patientDigits"
+              data-assessment="${assessment.id}"
+              value="${escapeAttribute(meta.patientDigits || "")}"
+              placeholder="12345"
+              aria-label="本院病歷號碼後五碼"
+            />
+          </span>
+        </label>
+        <label class="field-label">
           填寫日期
           <input class="text-field" type="date" data-meta="date" data-assessment="${assessment.id}" value="${escapeAttribute(
             meta.date || today
           )}" />
+        </label>
+        <label class="checkbox-field">
+          <input
+            type="checkbox"
+            data-meta-check="externalUser"
+            data-assessment="${assessment.id}"
+            ${meta.externalUser ? "checked" : ""}
+          />
+          <span>非凝視犬貓專科醫院病例，僅使用公開工具。</span>
         </label>
       </div>
       <div class="progress-block" id="progress-block"></div>
@@ -625,14 +895,33 @@ function renderQrShareBlock(assessment) {
 }
 
 function renderScaleGuide(assessment) {
-  return range(assessment.scale.min, assessment.scale.max)
-    .map(
-      (value) => `
-        <div class="scale-item">
-          ${value} 分：${escapeHtml(assessment.scale.labels[value])}
+  const guides = assessment.scaleGuides || [
+    { title: "", labels: assessment.scale.labels, scale: assessment.scale },
+  ];
+
+  return guides
+    .map((guide) => {
+      const scale = guide.scale || {
+        ...assessment.scale,
+        labels: guide.labels || assessment.scale.labels,
+      };
+      return `
+        <div class="scale-guide-group">
+          ${guide.title ? `<h3>${escapeHtml(guide.title)}</h3>` : ""}
+          <div class="scale-guide-items">
+            ${getScaleValues(scale)
+              .map(
+                (value) => `
+                  <div class="scale-item">
+                    ${value} 分：${escapeHtml(scale.labels[value])}
+                  </div>
+                `
+              )
+              .join("")}
+          </div>
         </div>
-      `
-    )
+      `;
+    })
     .join("");
 }
 
@@ -644,7 +933,7 @@ function renderQuestionSections(assessment) {
         .map((rawItem) => {
           const item = normalizeItem(rawItem);
           const itemId = `${categoryIndex}-${itemNumber}`;
-          const html = renderQuestionCard(assessment, item, itemNumber, itemId);
+          const html = renderQuestionCard(assessment, category, item, itemNumber, itemId);
           itemNumber += 1;
           return html;
         })
@@ -665,8 +954,9 @@ function renderQuestionSections(assessment) {
     .join("");
 }
 
-function renderQuestionCard(assessment, item, number, itemId) {
+function renderQuestionCard(assessment, category, item, number, itemId) {
   const answer = state.answers[assessment.id]?.[itemId];
+  const scale = item.scale || category.scale || assessment.scale;
   return `
     <article class="question-card ${item.reverse ? "reverse" : ""}">
       <div class="question-copy">
@@ -675,24 +965,30 @@ function renderQuestionCard(assessment, item, number, itemId) {
           <p class="question-text">${escapeHtml(item.text)}</p>
           ${
             item.reverse
-              ? `<p class="reverse-note">負向題：0 代表負面狀態明顯，${assessment.scale.max} 代表負面狀態不明顯。</p>`
+              ? `<p class="reverse-note">負向題：${scale.min} 代表負面狀態明顯，${scale.max} 代表負面狀態不明顯。</p>`
+              : ""
+          }
+          ${
+            item.weight && item.weight !== 1
+              ? `<p class="reverse-note">本題計分會乘以 ${item.weight}。</p>`
               : ""
           }
         </div>
       </div>
       <fieldset class="score-options">
         <legend class="sr-only">第 ${number} 題分數</legend>
-        ${range(assessment.scale.min, assessment.scale.max)
+        ${getScaleValues(scale)
           .map((value) =>
             renderScoreOption({
               assessment,
+              scale,
               itemId,
               value,
               checked: answer === value,
               reverse: item.reverse,
               name: `${assessment.id}-${itemId}`,
               dataAttr: "data-answer",
-              ariaLabel: `第 ${number} 題 ${value} 分：${scoreLabelFor(assessment, item, value)}`,
+              ariaLabel: `第 ${number} 題 ${value} 分：${scoreLabelFor(scale, item, value)}`,
             })
           )
           .join("")}
@@ -861,18 +1157,32 @@ function getStats(assessment) {
   const answers = state.answers[assessment.id] || {};
   let itemNumber = 1;
   let total = 0;
+  let min = 0;
+  let max = 0;
   let completed = 0;
-  const categories = assessment.categories.map((category) => {
+  const categories = assessment.categories.map((category, categoryIndex) => {
     let categoryTotal = 0;
+    let categoryMin = 0;
+    let categoryMax = 0;
     let categoryCompleted = 0;
     const count = category.items.length;
-    category.items.forEach(() => {
-      const value = answers[`${assessment.categories.indexOf(category)}-${itemNumber}`];
+    category.items.forEach((rawItem) => {
+      const item = normalizeItem(rawItem);
+      const scale = item.scale || category.scale || assessment.scale;
+      const weight = item.weight || 1;
+      const itemMin = getScaleMin(scale) * weight;
+      const itemMax = getScaleMax(scale) * weight;
+      const value = answers[`${categoryIndex}-${itemNumber}`];
+      min += itemMin;
+      max += itemMax;
+      categoryMin += itemMin;
+      categoryMax += itemMax;
       if (typeof value === "number") {
+        const weightedScore = value * weight;
         completed += 1;
         categoryCompleted += 1;
-        total += value;
-        categoryTotal += value;
+        total += weightedScore;
+        categoryTotal += weightedScore;
       }
       itemNumber += 1;
     });
@@ -881,7 +1191,8 @@ function getStats(assessment) {
       total: categoryTotal,
       completed: categoryCompleted,
       count,
-      max: count * assessment.scale.max,
+      min: categoryMin,
+      max: categoryMax,
     };
   });
 
@@ -889,8 +1200,6 @@ function getStats(assessment) {
     (sum, category) => sum + category.items.length,
     0
   );
-  const min = itemCount * assessment.scale.min;
-  const max = itemCount * assessment.scale.max;
   const completionPercent = Math.round((completed / itemCount) * 100);
   const normalized =
     max === min ? 0 : Math.round(((total - min) / (max - min)) * 100);
@@ -906,14 +1215,21 @@ function getStats(assessment) {
     completionPercent,
     qualityPercent,
     categories,
-    interpretation: getInterpretation(assessment, completed, itemCount, qualityPercent),
+    interpretation: getInterpretation(assessment, completed, itemCount, qualityPercent, total),
   };
 }
 
-function getInterpretation(assessment, completed, itemCount, qualityPercent) {
+function getInterpretation(assessment, completed, itemCount, qualityPercent, total) {
   if (completed < itemCount) {
     return `尚有 ${itemCount - completed} 題未填，完成後會顯示較完整的解讀。`;
   }
+
+  const matchedRange = assessment.interpretationRanges?.find((rangeItem) => {
+    const aboveMin = rangeItem.min === undefined || total >= rangeItem.min;
+    const belowMax = rangeItem.max === undefined || total <= rangeItem.max;
+    return aboveMin && belowMax;
+  });
+  if (matchedRange) return matchedRange.text;
 
   if (qualityPercent >= 80) {
     return "目前填答顯示生活品質指標相對穩定，可持續追蹤變化。";
@@ -932,15 +1248,20 @@ function getInterpretation(assessment, completed, itemCount, qualityPercent) {
 
 function normalizeItem(item) {
   if (typeof item === "string") return { text: item, reverse: false };
-  return { text: item.text, reverse: Boolean(item.reverse) };
+  return {
+    text: item.text,
+    reverse: Boolean(item.reverse),
+    weight: item.weight || 1,
+    scale: item.scale,
+  };
 }
 
-function scoreLabelFor(assessment, item, value) {
+function scoreLabelFor(scale, item, value) {
   if (item.reverse) {
-    if (value === assessment.scale.min) return "負面狀態明顯";
-    if (value === assessment.scale.max) return "負面狀態不明顯";
+    if (value === scale.min) return "負面狀態明顯";
+    if (value === scale.max) return "負面狀態不明顯";
   }
-  return assessment.scale.labels[value] || `${value} 分`;
+  return scale.labels[value] || `${value} 分`;
 }
 
 function getAssessmentUrl(assessmentId) {
@@ -957,18 +1278,54 @@ function isLocalPreview() {
   return ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
 }
 
+function getScaleValues(scale) {
+  return scale.values || range(scale.min, scale.max);
+}
+
+function getScaleMin(scale) {
+  return Math.min(...getScaleValues(scale));
+}
+
+function getScaleMax(scale) {
+  return Math.max(...getScaleValues(scale));
+}
+
 function range(min, max) {
   return Array.from({ length: max - min + 1 }, (_, index) => min + index);
+}
+
+function normalizePatientDigits(value) {
+  return String(value || "")
+    .replace(/\D/g, "")
+    .slice(0, 5);
+}
+
+function formatPatientRecordNumber(digits) {
+  const normalized = normalizePatientDigits(digits);
+  return normalized.length === 5 ? `PT0${normalized}` : "";
+}
+
+function getMetaDisplay(assessmentId) {
+  const meta = state.meta[assessmentId] || {};
+  const patientDigits = normalizePatientDigits(meta.patientDigits || "");
+  return {
+    ...meta,
+    patientDigits,
+    patientRecordNumber: formatPatientRecordNumber(patientDigits),
+    externalUser: Boolean(meta.externalUser),
+  };
 }
 
 function buildSummaryText() {
   const assessment = getActiveAssessment();
   const stats = getStats(assessment);
-  const meta = state.meta[assessment.id] || {};
+  const meta = getMetaDisplay(assessment.id);
   const lines = [
     "犬貓生活品質評估",
     assessment.title,
     meta.petName ? `寵物姓名或代號：${meta.petName}` : "",
+    meta.patientRecordNumber ? `病歷號碼：${meta.patientRecordNumber}` : "",
+    meta.externalUser ? "非本院病例：是" : "",
     meta.date ? `填寫日期：${meta.date}` : "",
     `${assessment.totalLabel}：${stats.total} / ${stats.max}`,
     `${assessment.qualityLabel}：${stats.qualityPercent}%`,
@@ -996,6 +1353,7 @@ function buildSummaryText() {
 async function uploadActiveRecord() {
   const assessment = getActiveAssessment();
   const stats = getStats(assessment);
+  const meta = getMetaDisplay(assessment.id);
 
   if (stats.completed < stats.itemCount) {
     setPanelStatus(
@@ -1010,6 +1368,14 @@ async function uploadActiveRecord() {
     return;
   }
 
+  if (!meta.externalUser && !meta.patientRecordNumber) {
+    setPanelStatus(
+      "請輸入本院病歷號碼後五碼；若不是本院病例，請勾選非本院使用。",
+      "error"
+    );
+    return;
+  }
+
   if (!window.qolFirebase?.submitQolRecord) {
     setPanelStatus("Firebase 尚未載入完成，請稍候再試。", "error");
     return;
@@ -1018,21 +1384,71 @@ async function uploadActiveRecord() {
   setPanelStatus("正在上傳紀錄...", "success");
 
   try {
-    const result = await window.qolFirebase.submitQolRecord(
-      buildFirebaseRecord(assessment, stats)
-    );
-    setPanelStatus(`已上傳到 Firebase，紀錄 ID：${result.id}`, "success");
+    const record = buildFirebaseRecord(assessment, stats);
+    const result = await window.qolFirebase.submitQolRecord(record);
+    const googleResult = await exportRecordToGoogle(record, result.id);
+    if (googleResult.failed) {
+      setPanelStatus(
+        `已上傳紀錄，紀錄 ID：${result.id}。但 Google Sheet / PDF 匯出失敗：${googleResult.message}`,
+        "error"
+      );
+      return;
+    }
+    if (googleResult.skipped) {
+      setPanelStatus(`已上傳紀錄，紀錄 ID：${result.id}。${googleResult.message}`, "success");
+      return;
+    }
+    setPanelStatus(`已上傳紀錄，並已建立 Google Sheet / PDF。紀錄 ID：${result.id}`, "success");
   } catch (error) {
     console.error(error);
     setPanelStatus(
-      "上傳失敗。可能是 Firestore 規則尚未允許 qolRecords 新增紀錄。",
+      "上傳或匯出失敗。請確認 Firestore 規則與 Google 匯出環境變數設定。",
       "error"
     );
   }
 }
 
+async function exportRecordToGoogle(record, firebaseRecordId) {
+  if (isLocalPreview()) {
+    return {
+      skipped: true,
+      message: "Google Sheet / PDF 匯出會在正式 Vercel 網站設定後啟用。",
+    };
+  }
+
+  try {
+    const response = await fetch("/api/export-record", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ record, firebaseRecordId }),
+    });
+
+    if (response.status === 404) {
+      return {
+        skipped: true,
+        message: "目前尚未啟用 Google Sheet / PDF 匯出 API。",
+      };
+    }
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      return {
+        failed: true,
+        message: result.error || "後端回傳錯誤。",
+      };
+    }
+
+    return result;
+  } catch {
+    return {
+      failed: true,
+      message: "無法連線到 Google 匯出 API。",
+    };
+  }
+}
+
 function buildFirebaseRecord(assessment, stats) {
-  const meta = state.meta[assessment.id] || {};
+  const meta = getMetaDisplay(assessment.id);
   const answers = state.answers[assessment.id] || {};
   const normalizedAnswers = [];
   let itemNumber = 1;
@@ -1040,7 +1456,10 @@ function buildFirebaseRecord(assessment, stats) {
   assessment.categories.forEach((category, categoryIndex) => {
     category.items.forEach((rawItem) => {
       const item = normalizeItem(rawItem);
+      const scale = item.scale || category.scale || assessment.scale;
+      const weight = item.weight || 1;
       const itemId = `${categoryIndex}-${itemNumber}`;
+      const score = answers[itemId];
       normalizedAnswers.push({
         itemId,
         itemNumber,
@@ -1048,7 +1467,10 @@ function buildFirebaseRecord(assessment, stats) {
         categoryEnglish: category.english,
         question: item.text,
         reverse: Boolean(item.reverse),
-        score: answers[itemId],
+        weight,
+        score,
+        weightedScore: typeof score === "number" ? score * weight : null,
+        scoreLabel: typeof score === "number" ? scoreLabelFor(scale, item, score) : "",
       });
       itemNumber += 1;
     });
@@ -1060,6 +1482,9 @@ function buildFirebaseRecord(assessment, stats) {
     assessmentTitle: assessment.title,
     assessmentShortTitle: assessment.shortTitle,
     petNameOrCode: meta.petName || "",
+    patientDigits: meta.patientDigits || "",
+    patientRecordNumber: meta.externalUser ? "" : meta.patientRecordNumber,
+    isExternalUser: meta.externalUser,
     assessmentDate: meta.date || "",
     totalScore: stats.total,
     minScore: stats.min,
