@@ -1,0 +1,9 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/dog-fetch", "destination": "/index.html" },
+    { "source": "/dog-hrql", "destination": "/index.html" },
+    { "source": "/cat-qol", "destination": "/index.html" },
+    { "source": "/cancer-qol", "destination": "/index.html" }
+  ]
+}
