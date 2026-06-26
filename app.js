@@ -502,9 +502,25 @@ const ASSESSMENTS = [
       },
     ],
     interpretationRanges: [
-      { max: 39, text: "通常正常範圍；若家長仍觀察到明顯變化，建議持續追蹤並排除其他疾病。" },
-      { min: 40, max: 49, text: "落在風險區，建議追蹤變化，並與獸醫師討論是否需要進一步評估。" },
-      { min: 50, text: "高度懷疑 CCD / CDS，建議整理結果並安排獸醫師進一步評估與鑑別診斷。" },
+      {
+        max: 39,
+        rangeLabel: "<40",
+        label: "通常正常範圍",
+        text: "通常正常範圍；若家長仍觀察到明顯變化，建議持續追蹤並排除其他疾病。",
+      },
+      {
+        min: 40,
+        max: 49,
+        rangeLabel: "40-49",
+        label: "風險區，建議追蹤",
+        text: "落在風險區，建議追蹤變化，並與獸醫師討論是否需要進一步評估。",
+      },
+      {
+        min: 50,
+        rangeLabel: ">=50",
+        label: "高度懷疑 CCD / CDS",
+        text: "高度懷疑 CCD / CDS，建議整理結果並安排獸醫師進一步評估與鑑別診斷。",
+      },
     ],
     notesPrompt:
       "可記錄疼痛、視力/聽力退化、泌尿道、內分泌、神經疾病、藥物或環境改變等可能影響認知表現的因素。",
@@ -579,10 +595,34 @@ const ASSESSMENTS = [
       },
     ],
     interpretationRanges: [
-      { min: 0, max: 7, text: "分數落在正常老化範圍；建議保留本次結果作為後續追蹤基準。" },
-      { min: 8, max: 23, text: "分數符合輕度認知退化區間，建議追蹤頻率與生活作息變化。" },
-      { min: 24, max: 44, text: "分數符合中度認知退化區間，建議與獸醫師討論鑑別診斷與照護策略。" },
-      { min: 45, text: "分數符合重度認知退化區間，建議安排完整評估並討論生活品質與照護需求。" },
+      {
+        min: 0,
+        max: 7,
+        rangeLabel: "0-7",
+        label: "正常老化",
+        text: "分數落在正常老化範圍；建議保留本次結果作為後續追蹤基準。",
+      },
+      {
+        min: 8,
+        max: 23,
+        rangeLabel: "8-23",
+        label: "輕度",
+        text: "分數符合輕度認知退化區間，建議追蹤頻率與生活作息變化。",
+      },
+      {
+        min: 24,
+        max: 44,
+        rangeLabel: "24-44",
+        label: "中度",
+        text: "分數符合中度認知退化區間，建議與獸醫師討論鑑別診斷與照護策略。",
+      },
+      {
+        min: 45,
+        max: 95,
+        rangeLabel: "45-95",
+        label: "重度",
+        text: "分數符合重度認知退化區間，建議安排完整評估並討論生活品質與照護需求。",
+      },
     ],
     notesPrompt:
       "可記錄夜間不安、迷失方向、亂尿亂便、互動改變，以及疼痛、視聽力、血壓、內分泌、腎肝、泌尿、神經或藥物因素。",
@@ -904,6 +944,7 @@ function renderAssessment(assessment) {
         </label>
       </div>
       <div class="progress-block" id="progress-block"></div>
+      <div class="result-ranges-block" id="result-ranges-block"></div>
     </section>
     ${renderQuestionSections(assessment)}
     ${assessment.overall ? renderOverallBlock(assessment) : ""}
@@ -1289,6 +1330,7 @@ function renderProgress() {
       <div class="progress-fill" style="width: ${stats.completionPercent}%"></div>
     </div>
   `;
+  renderResultRanges();
 }
 
 function renderScorePanel() {
@@ -1348,6 +1390,55 @@ function renderOverallSummary(assessment) {
   `;
 }
 
+function renderResultRanges() {
+  const block = document.querySelector("#result-ranges-block");
+  if (!block) return;
+
+  const assessment = getActiveAssessment();
+  const ranges = assessment.interpretationRanges || [];
+  if (!ranges.length) {
+    block.innerHTML = "";
+    return;
+  }
+
+  const stats = getStats(assessment);
+  const isComplete = stats.completed === stats.itemCount;
+  const activeRange = isComplete ? stats.interpretationRange : "";
+  block.innerHTML = `
+    <section class="result-ranges" aria-label="結果判讀">
+      <div class="result-ranges-head">
+        <h3>結果判讀</h3>
+        <p>${
+          isComplete
+            ? `目前結果：${escapeHtml(stats.interpretationRange)} ${escapeHtml(
+                stats.interpretationBand
+              )}`
+            : "完成所有題目後，會自動標示目前分數落在哪一個區間。"
+        }</p>
+      </div>
+      <div class="result-range-grid">
+        ${ranges
+          .map((rangeItem) => {
+            const rangeLabel = getInterpretationRangeLabel(rangeItem);
+            const isActive = isComplete && activeRange === rangeLabel;
+            return `
+              <div class="result-range-card ${isActive ? "active" : ""}">
+                <strong>${escapeHtml(rangeLabel)}</strong>
+                <span>${escapeHtml(rangeItem.label || rangeItem.text)}</span>
+              </div>
+            `;
+          })
+          .join("")}
+      </div>
+      ${
+        isComplete
+          ? `<p class="result-interpretation">${escapeHtml(stats.interpretation)}</p>`
+          : ""
+      }
+    </section>
+  `;
+}
+
 function getStats(assessment) {
   const answers = state.answers[assessment.id] || {};
   let itemNumber = 1;
@@ -1400,6 +1491,8 @@ function getStats(assessment) {
     max === min ? 0 : clampPercent(Math.round(((total - min) / (max - min)) * 100));
   const qualityPercent =
     assessment.direction === "lower" ? clampPercent(100 - normalized) : normalized;
+  const matchedInterpretationRange =
+    completed === itemCount ? getMatchedInterpretationRange(assessment, total) : null;
 
   return {
     total,
@@ -1410,20 +1503,26 @@ function getStats(assessment) {
     completionPercent,
     qualityPercent,
     categories,
-    interpretation: getInterpretation(assessment, completed, itemCount, qualityPercent, total),
+    interpretationRange: matchedInterpretationRange
+      ? getInterpretationRangeLabel(matchedInterpretationRange)
+      : "",
+    interpretationBand: matchedInterpretationRange?.label || "",
+    interpretation: getInterpretation(
+      assessment,
+      completed,
+      itemCount,
+      qualityPercent,
+      total,
+      matchedInterpretationRange
+    ),
   };
 }
 
-function getInterpretation(assessment, completed, itemCount, qualityPercent, total) {
+function getInterpretation(assessment, completed, itemCount, qualityPercent, total, matchedRange) {
   if (completed < itemCount) {
     return `尚有 ${itemCount - completed} 題未填，完成後會顯示較完整的解讀。`;
   }
 
-  const matchedRange = assessment.interpretationRanges?.find((rangeItem) => {
-    const aboveMin = rangeItem.min === undefined || total >= rangeItem.min;
-    const belowMax = rangeItem.max === undefined || total <= rangeItem.max;
-    return aboveMin && belowMax;
-  });
   if (matchedRange) return matchedRange.text;
 
   if (qualityPercent >= 80) {
@@ -1439,6 +1538,21 @@ function getInterpretation(assessment, completed, itemCount, qualityPercent, tot
   }
 
   return "目前填答顯示生活品質指標偏低，建議整理結果並與獸醫師討論疼痛、食慾、活動或安寧照護需求。";
+}
+
+function getMatchedInterpretationRange(assessment, total) {
+  return assessment.interpretationRanges?.find((rangeItem) => {
+    const aboveMin = rangeItem.min === undefined || total >= rangeItem.min;
+    const belowMax = rangeItem.max === undefined || total <= rangeItem.max;
+    return aboveMin && belowMax;
+  });
+}
+
+function getInterpretationRangeLabel(rangeItem) {
+  if (rangeItem.rangeLabel) return rangeItem.rangeLabel;
+  if (rangeItem.min === undefined) return `<=${rangeItem.max}`;
+  if (rangeItem.max === undefined) return `>=${rangeItem.min}`;
+  return `${rangeItem.min}-${rangeItem.max}`;
 }
 
 function normalizeItem(item) {
@@ -1753,7 +1867,14 @@ function buildFirebaseRecord(assessment, stats) {
     totalItems: stats.itemCount,
     overallScore: state.overall[assessment.id] || null,
     overallMax: assessment.overall?.max || null,
+    interpretationRange: stats.interpretationRange || "",
+    interpretationBand: stats.interpretationBand || "",
     interpretation: stats.interpretation,
+    interpretationRanges: (assessment.interpretationRanges || []).map((rangeItem) => ({
+      range: getInterpretationRangeLabel(rangeItem),
+      label: rangeItem.label || "",
+      text: rangeItem.text || "",
+    })),
     categoryScores: stats.categories,
     answers: normalizedAnswers,
     notes: state.notes[assessment.id] || "",

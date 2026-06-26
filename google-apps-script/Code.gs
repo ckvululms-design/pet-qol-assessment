@@ -19,6 +19,8 @@ const SHEET_HEADERS = [
   "pdfFileName",
   "pdfFileUrl",
   "notes",
+  "interpretationRange",
+  "interpretationBand",
 ];
 
 const DEFAULT_RECORDS_SHEET_NAME = "Records";
@@ -127,9 +129,26 @@ function getSheet_(sheetId, sheetName) {
   if (sheet.getLastRow() === 0) {
     sheet.appendRow(SHEET_HEADERS);
     sheet.setFrozenRows(1);
+  } else {
+    ensureSheetHeaders_(sheet);
   }
 
   return sheet;
+}
+
+function ensureSheetHeaders_(sheet) {
+  const lastColumn = sheet.getLastColumn();
+  if (lastColumn === 0) {
+    sheet.appendRow(SHEET_HEADERS);
+    sheet.setFrozenRows(1);
+    return;
+  }
+
+  const headers = sheet.getRange(1, 1, 1, lastColumn).getValues()[0];
+  const missingHeaders = SHEET_HEADERS.filter((header) => !headers.includes(header));
+  if (!missingHeaders.length) return;
+
+  sheet.getRange(1, lastColumn + 1, 1, missingHeaders.length).setValues([missingHeaders]);
 }
 
 function migrateRecordsSheetToAssessmentTabs() {
@@ -251,6 +270,8 @@ function buildSheetRow_(record, firebaseRecordId, pdfFile) {
     pdfFile.getName(),
     pdfFile.getUrl(),
     record.notes || "",
+    record.interpretationRange || "",
+    record.interpretationBand || "",
   ];
 }
 
@@ -294,6 +315,12 @@ function renderRecordHtml_(record, firebaseRecordId) {
           th, td { border: 1px solid #d6e2dd; padding: 6px; vertical-align: top; }
           th { background: #f1f7f4; text-align: left; }
           .score { font-size: 18px; font-weight: 800; color: #05665d; }
+          .judgement { margin-top: 10px; border: 1px solid #d8c4a7; border-radius: 8px; padding: 10px; background: #fbf8ef; }
+          .judgement-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px; }
+          .judgement-card { border: 1px solid #d8c4a7; border-radius: 6px; padding: 6px; text-align: center; background: #fff; }
+          .judgement-card.active { border-color: #05665d; background: #e6f3f0; }
+          .judgement-card strong { display: block; color: #a94c2d; font-size: 13px; }
+          .judgement-card.active strong { color: #05665d; }
           .note { white-space: pre-wrap; }
         </style>
       </head>
@@ -306,8 +333,11 @@ function renderRecordHtml_(record, firebaseRecordId) {
           <div class="label">病歷號碼</div><div>${escapeHtml_(record.patientRecordNumber || (record.isExternalUser ? "非四院共用病歷病例" : ""))}</div>
           <div class="label">總分</div><div class="score">${record.totalScore} / ${record.maxScore}</div>
           <div class="label">指標</div><div>${record.qualityPercent}%</div>
+          <div class="label">判讀區間</div><div>${escapeHtml_(record.interpretationRange || "")}</div>
+          <div class="label">結果判讀</div><div>${escapeHtml_(record.interpretationBand || "")}</div>
           <div class="label">解讀</div><div>${escapeHtml_(record.interpretation || "")}</div>
         </div>
+        ${renderInterpretationRangesHtml_(record)}
         <h2>分類小計</h2>
         <p>${escapeHtml_(formatCategoryScores_(record.categoryScores))}</p>
         <h2>逐題紀錄</h2>
@@ -326,6 +356,35 @@ function renderRecordHtml_(record, firebaseRecordId) {
 
 function formatCategoryScores_(categories) {
   return (categories || []).map((category) => `${category.name}: ${category.total}/${category.max}`).join("; ");
+}
+
+function renderInterpretationRangesHtml_(record) {
+  const ranges = record.interpretationRanges || [];
+  if (!ranges.length) return "";
+
+  const cards = ranges
+    .map((rangeItem) => {
+      const range = rangeItem.range || "";
+      const label = rangeItem.label || "";
+      const active = range && range === record.interpretationRange ? " active" : "";
+      return `
+        <div class="judgement-card${active}">
+          <strong>${escapeHtml_(range)}</strong>
+          <span>${escapeHtml_(label)}</span>
+        </div>
+      `;
+    })
+    .join("");
+
+  return `
+    <div class="judgement">
+      <h2>結果判讀</h2>
+      <p><strong>${escapeHtml_(record.interpretationRange || "")} ${escapeHtml_(
+    record.interpretationBand || ""
+  )}</strong></p>
+      <div class="judgement-grid">${cards}</div>
+    </div>
+  `;
 }
 
 function sanitizeFilePart_(value) {
