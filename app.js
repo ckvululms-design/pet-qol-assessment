@@ -598,6 +598,7 @@ const assessmentById = new Map(ASSESSMENTS.map((assessment) => [assessment.id, a
 let panelStatus = "";
 let panelStatusKind = "success";
 let lastQrTrigger = null;
+let lastSubmissionTrigger = null;
 
 const state = loadState();
 state.activeId = getInitialAssessmentId();
@@ -643,6 +644,7 @@ app.addEventListener("click", async (event) => {
   }
 
   if (action === "upload-firebase") {
+    lastSubmissionTrigger = event.target.closest("[data-action]");
     await uploadActiveRecord();
   }
 });
@@ -651,10 +653,19 @@ document.addEventListener("click", (event) => {
   if (event.target.closest("[data-modal-action='close-qr']")) {
     closeQrModal();
   }
+
+  if (event.target.closest("[data-modal-action='close-submission']")) {
+    closeSubmissionModal();
+  }
 });
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") closeQrModal();
+  if (event.key !== "Escape") return;
+  if (document.querySelector(".submission-modal")) {
+    closeSubmissionModal();
+    return;
+  }
+  closeQrModal();
 });
 
 app.addEventListener("change", (event) => {
@@ -967,6 +978,77 @@ function closeQrModal(options = {}) {
   modal.remove();
   document.body.classList.remove("modal-open");
   if (restoreFocus && lastQrTrigger) lastQrTrigger.focus();
+}
+
+function openSubmissionModal({ assessment, stats, meta, recordId, googleResult, kind = "success" }) {
+  closeSubmissionModal({ restoreFocus: false });
+  const pdfFileName = googleResult?.pdfFileName || "";
+  const hasStoredPdf = Boolean(pdfFileName);
+  const isWarning = kind === "warning";
+  const title = isWarning ? "紀錄已收到，PDF 匯出待確認" : "已收到這份問卷";
+  const description = isWarning
+    ? "問卷紀錄已送出，但院內紀錄或 PDF 歸檔暫時沒有完成。院內可依紀錄 ID 追蹤。"
+    : hasStoredPdf
+      ? "問卷已送出，院內也已留存 PDF 紀錄。感謝填寫，結果可作為後續追蹤與回診討論參考。"
+      : "問卷已送出，感謝填寫。此結果可作為後續追蹤與回診討論參考。";
+
+  const modal = document.createElement("div");
+  modal.className = "submission-modal";
+  modal.setAttribute("role", "dialog");
+  modal.setAttribute("aria-modal", "true");
+  modal.setAttribute("aria-labelledby", "submission-modal-title");
+  modal.innerHTML = `
+    <button class="submission-modal-backdrop" type="button" data-modal-action="close-submission" aria-label="關閉送出確認"></button>
+    <div class="submission-modal-card ${isWarning ? "warning" : ""}">
+      <button class="qr-modal-close" type="button" data-modal-action="close-submission" aria-label="關閉">x</button>
+      <div class="submission-icon" aria-hidden="true">${isWarning ? "!" : "✓"}</div>
+      <h2 id="submission-modal-title">${escapeHtml(title)}</h2>
+      <p class="submission-message">${escapeHtml(description)}</p>
+      <dl class="submission-summary">
+        <div>
+          <dt>寵物</dt>
+          <dd>${escapeHtml(meta.petName || "未填寫")}</dd>
+        </div>
+        <div>
+          <dt>量表</dt>
+          <dd>${escapeHtml(assessment.shortTitle)}</dd>
+        </div>
+        <div>
+          <dt>填寫日期</dt>
+          <dd>${escapeHtml(meta.date || "未填寫")}</dd>
+        </div>
+        <div>
+          <dt>${escapeHtml(assessment.totalLabel)}</dt>
+          <dd>${stats.total} / ${stats.max}</dd>
+        </div>
+        <div>
+          <dt>${escapeHtml(assessment.qualityLabel)}</dt>
+          <dd>${stats.qualityPercent}%</dd>
+        </div>
+        <div>
+          <dt>完成度</dt>
+          <dd>${stats.completed} / ${stats.itemCount}</dd>
+        </div>
+      </dl>
+      <p class="submission-record-id">紀錄 ID：${escapeHtml(recordId || "已送出")}</p>
+      <div class="submission-actions">
+        <button class="action-button" type="button" data-modal-action="close-submission">完成</button>
+      </div>
+      ${hasStoredPdf ? `<p class="submission-pdf-name">PDF 已留存於院內紀錄。</p>` : ""}
+    </div>
+  `;
+  document.body.appendChild(modal);
+  document.body.classList.add("modal-open");
+  modal.querySelector(".submission-actions [data-modal-action='close-submission']")?.focus();
+}
+
+function closeSubmissionModal(options = {}) {
+  const { restoreFocus = true } = options;
+  const modal = document.querySelector(".submission-modal");
+  if (!modal) return;
+  modal.remove();
+  document.body.classList.remove("modal-open");
+  if (restoreFocus && lastSubmissionTrigger) lastSubmissionTrigger.focus();
 }
 
 function renderScaleGuide(assessment) {
@@ -1517,16 +1599,26 @@ async function uploadActiveRecord() {
     const googleResult = await exportRecordToGoogle(record, result.id);
     if (googleResult.failed) {
       setPanelStatus(
-        `已上傳紀錄，紀錄 ID：${result.id}。但 Google Sheet / PDF 匯出失敗：${googleResult.message}`,
+        `已收到問卷，紀錄 ID：${result.id}。但院內 PDF / 表單歸檔暫時未完成：${googleResult.message}`,
         "error"
       );
+      openSubmissionModal({
+        assessment,
+        stats,
+        meta,
+        recordId: result.id,
+        googleResult,
+        kind: "warning",
+      });
       return;
     }
     if (googleResult.skipped) {
-      setPanelStatus(`已上傳紀錄，紀錄 ID：${result.id}。${googleResult.message}`, "success");
+      setPanelStatus(`已收到這份問卷，紀錄 ID：${result.id}。${googleResult.message}`, "success");
+      openSubmissionModal({ assessment, stats, meta, recordId: result.id, googleResult });
       return;
     }
-    setPanelStatus(`已上傳紀錄，並已建立 Google Sheet / PDF。紀錄 ID：${result.id}`, "success");
+    setPanelStatus(`已收到這份問卷，院內紀錄已建立。紀錄 ID：${result.id}`, "success");
+    openSubmissionModal({ assessment, stats, meta, recordId: result.id, googleResult });
   } catch (error) {
     console.error(error);
     setPanelStatus(
@@ -1540,7 +1632,7 @@ async function exportRecordToGoogle(record, firebaseRecordId) {
   if (isLocalPreview()) {
     return {
       skipped: true,
-      message: "Google Sheet / PDF 匯出會在正式 Vercel 網站設定後啟用。",
+      message: "院內紀錄 / PDF 匯出會在正式網站設定後啟用。",
     };
   }
 
@@ -1554,7 +1646,7 @@ async function exportRecordToGoogle(record, firebaseRecordId) {
     if (response.status === 404) {
       return {
         skipped: true,
-        message: "目前尚未啟用 Google Sheet / PDF 匯出 API。",
+        message: "目前尚未啟用院內紀錄 / PDF 匯出功能。",
       };
     }
 
