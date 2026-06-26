@@ -506,6 +506,19 @@ a {
   font-weight: 700;
 }
 
+.question-scale-guide {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #f7fbfa;
+}
+
+.question-scale-guide h3 {
+  margin-top: 0;
+  color: var(--accent-strong);
+  font-weight: 900;
+}
+
 .meta-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

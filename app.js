@@ -842,6 +842,7 @@ function renderAssessment(assessment) {
   const meta = state.meta[assessment.id] || {};
   const today = new Date().toISOString().slice(0, 10);
   const patientDigitsRequired = !meta.externalUser;
+  const scaleGuideHtml = renderScaleGuide(assessment);
   return `
     <section class="assessment-head" aria-labelledby="assessment-title">
       <h2 id="assessment-title" class="assessment-title">${escapeHtml(assessment.title)}</h2>
@@ -849,9 +850,7 @@ function renderAssessment(assessment) {
       <p class="intro">${escapeHtml(assessment.intro)}</p>
       <p class="notice">此工具用於居家觀察、追蹤與就診討論，不取代獸醫師診斷或治療建議。資料會先保存在目前裝置的瀏覽器；只有按下「上傳紀錄」時，才會送到凝視犬貓專科醫院的紀錄系統。</p>
       ${renderQrShareBlock(assessment)}
-      <div class="scale-guide" aria-label="分數說明">
-        ${renderScaleGuide(assessment)}
-      </div>
+      ${scaleGuideHtml ? `<div class="scale-guide" aria-label="分數說明">${scaleGuideHtml}</div>` : ""}
       <div class="meta-grid">
         <label class="field-label">
           <span>寵物姓名或代號 <span class="required-mark">必填</span></span>
@@ -1052,45 +1051,33 @@ function closeSubmissionModal(options = {}) {
 }
 
 function renderScaleGuide(assessment) {
-  const guides = assessment.scaleGuides || [
-    { title: "", labels: assessment.scale.labels, scale: assessment.scale },
-  ];
+  const guides = getGeneralScaleGuides(assessment);
+  if (!guides.length) return "";
 
   return guides
     .map((guide) => {
-      const scale = guide.scale || {
-        ...assessment.scale,
-        labels: guide.labels || assessment.scale.labels,
-      };
-      return `
-        <div class="scale-guide-group">
-          ${guide.title ? `<h3>${escapeHtml(guide.title)}</h3>` : ""}
-          <div class="scale-guide-items">
-            ${getScaleValues(scale)
-              .map(
-                (value) => `
-                  <div class="scale-item">
-                    ${value} 分：${escapeHtml(scale.labels[value])}
-                  </div>
-                `
-              )
-              .join("")}
-          </div>
-        </div>
-      `;
+      return renderScaleGuideGroup(assessment, guide);
     })
     .join("");
 }
 
 function renderQuestionSections(assessment) {
   let itemNumber = 1;
+  const questionGuides = getQuestionScaleGuides(assessment);
   return assessment.categories
     .map((category, categoryIndex) => {
       const questions = category.items
         .map((rawItem) => {
           const item = normalizeItem(rawItem);
           const itemId = `${categoryIndex}-${itemNumber}`;
-          const html = renderQuestionCard(assessment, category, item, itemNumber, itemId);
+          const guideHtml = renderQuestionGuideBefore(assessment, questionGuides, itemNumber);
+          const html = `${guideHtml}${renderQuestionCard(
+            assessment,
+            category,
+            item,
+            itemNumber,
+            itemId
+          )}`;
           itemNumber += 1;
           return html;
         })
@@ -1108,6 +1095,57 @@ function renderQuestionSections(assessment) {
         </section>
       `;
     })
+    .join("");
+}
+
+function renderScaleGuideGroup(assessment, guide, extraClass = "") {
+  const scale = guide.scale || {
+    ...assessment.scale,
+    labels: guide.labels || assessment.scale.labels,
+  };
+  return `
+    <div class="scale-guide-group ${extraClass}">
+      ${guide.title ? `<h3>${escapeHtml(guide.title)}</h3>` : ""}
+      <div class="scale-guide-items">
+        ${getScaleValues(scale)
+          .map(
+            (value) => `
+              <div class="scale-item">
+                ${value} 分：${escapeHtml(scale.labels[value])}
+              </div>
+            `
+          )
+          .join("")}
+      </div>
+    </div>
+  `;
+}
+
+function getGeneralScaleGuides(assessment) {
+  const guides = assessment.scaleGuides || [
+    { title: "", labels: assessment.scale.labels, scale: assessment.scale },
+  ];
+  return guides.filter((guide) => !getGuideStartQuestion(guide));
+}
+
+function getQuestionScaleGuides(assessment) {
+  return (assessment.scaleGuides || [])
+    .map((guide) => ({
+      ...guide,
+      startQuestion: getGuideStartQuestion(guide),
+    }))
+    .filter((guide) => guide.startQuestion);
+}
+
+function getGuideStartQuestion(guide) {
+  const match = String(guide.title || "").match(/^第\s*(\d+)/);
+  return match ? Number(match[1]) : null;
+}
+
+function renderQuestionGuideBefore(assessment, guides, itemNumber) {
+  return guides
+    .filter((guide) => guide.startQuestion === itemNumber)
+    .map((guide) => renderScaleGuideGroup(assessment, guide, "question-scale-guide"))
     .join("");
 }
 
