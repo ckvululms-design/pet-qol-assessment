@@ -639,6 +639,7 @@ let panelStatus = "";
 let panelStatusKind = "success";
 let lastQrTrigger = null;
 let lastSubmissionTrigger = null;
+let uploadInProgress = false;
 
 const state = loadState();
 state.activeId = getInitialAssessmentId();
@@ -1021,7 +1022,7 @@ function closeQrModal(options = {}) {
 }
 
 function openSubmissionModal({ assessment, stats, meta, recordId, googleResult, kind = "success" }) {
-  closeSubmissionModal({ restoreFocus: false });
+  closeSubmissionModal({ restoreFocus: false, force: true });
   const pdfFileName = googleResult?.pdfFileName || "";
   const hasStoredPdf = Boolean(pdfFileName);
   const isWarning = kind === "warning";
@@ -1082,10 +1083,73 @@ function openSubmissionModal({ assessment, stats, meta, recordId, googleResult, 
   modal.querySelector(".submission-actions [data-modal-action='close-submission']")?.focus();
 }
 
+function openSubmissionProgressModal({ assessment, meta }) {
+  closeSubmissionModal({ restoreFocus: false, force: true });
+  const modal = document.createElement("div");
+  modal.className = "submission-modal";
+  modal.dataset.submissionState = "loading";
+  modal.setAttribute("role", "alertdialog");
+  modal.setAttribute("aria-modal", "true");
+  modal.setAttribute("aria-labelledby", "submission-modal-title");
+  modal.setAttribute("aria-describedby", "submission-modal-message");
+  modal.innerHTML = `
+    <div class="submission-modal-backdrop" aria-hidden="true"></div>
+    <div class="submission-modal-card loading" aria-live="assertive" tabindex="-1">
+      <div class="submission-spinner" aria-hidden="true"></div>
+      <h2 id="submission-modal-title">正在上傳紀錄</h2>
+      <p class="submission-message" id="submission-modal-message">
+        系統正在儲存問卷並建立院內紀錄，通常需要幾秒鐘。請不要重複點選或關閉頁面。
+      </p>
+      <dl class="submission-summary compact">
+        <div>
+          <dt>寵物</dt>
+          <dd>${escapeHtml(meta.petName || "未填寫")}</dd>
+        </div>
+        <div>
+          <dt>量表</dt>
+          <dd>${escapeHtml(assessment.shortTitle)}</dd>
+        </div>
+        <div>
+          <dt>填寫日期</dt>
+          <dd>${escapeHtml(meta.date || "未填寫")}</dd>
+        </div>
+      </dl>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  document.body.classList.add("modal-open");
+  modal.querySelector(".submission-modal-card")?.focus();
+}
+
+function openSubmissionFailureModal(message) {
+  closeSubmissionModal({ restoreFocus: false, force: true });
+  const modal = document.createElement("div");
+  modal.className = "submission-modal";
+  modal.setAttribute("role", "dialog");
+  modal.setAttribute("aria-modal", "true");
+  modal.setAttribute("aria-labelledby", "submission-modal-title");
+  modal.innerHTML = `
+    <button class="submission-modal-backdrop" type="button" data-modal-action="close-submission" aria-label="關閉上傳失敗提示"></button>
+    <div class="submission-modal-card warning">
+      <button class="qr-modal-close" type="button" data-modal-action="close-submission" aria-label="關閉">x</button>
+      <div class="submission-icon" aria-hidden="true">!</div>
+      <h2 id="submission-modal-title">上傳失敗</h2>
+      <p class="submission-message">${escapeHtml(message)}</p>
+      <div class="submission-actions">
+        <button class="action-button" type="button" data-modal-action="close-submission">我知道了</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  document.body.classList.add("modal-open");
+  modal.querySelector(".submission-actions [data-modal-action='close-submission']")?.focus();
+}
+
 function closeSubmissionModal(options = {}) {
-  const { restoreFocus = true } = options;
+  const { restoreFocus = true, force = false } = options;
   const modal = document.querySelector(".submission-modal");
   if (!modal) return;
+  if (modal.dataset.submissionState === "loading" && !force) return;
   modal.remove();
   document.body.classList.remove("modal-open");
   if (restoreFocus && lastSubmissionTrigger) lastSubmissionTrigger.focus();
@@ -1370,7 +1434,9 @@ function renderScorePanel() {
         .join("")}
     </div>
     <div class="action-row">
-      <button class="action-button" type="button" data-action="upload-firebase">上傳紀錄</button>
+      <button class="action-button" type="button" data-action="upload-firebase" ${uploadInProgress ? 'disabled aria-busy="true"' : ""}>
+        ${uploadInProgress ? "上傳中..." : "上傳紀錄"}
+      </button>
       <button class="action-button" type="button" data-action="print">列印 / 儲存 PDF</button>
       <button class="action-button secondary" type="button" data-action="copy-summary">複製摘要</button>
       <button class="action-button secondary" type="button" data-action="copy-link">複製連結</button>
@@ -1718,6 +1784,8 @@ function buildSummaryText() {
 }
 
 async function uploadActiveRecord() {
+  if (uploadInProgress) return;
+
   const assessment = getActiveAssessment();
   const stats = getStats(assessment);
   const meta = getMetaDisplay(assessment.id);
@@ -1755,7 +1823,9 @@ async function uploadActiveRecord() {
     return;
   }
 
-  setPanelStatus("正在上傳紀錄...", "success");
+  uploadInProgress = true;
+  setPanelStatus("正在上傳紀錄，請稍候...", "success");
+  openSubmissionProgressModal({ assessment, meta });
 
   try {
     const record = buildFirebaseRecord(assessment, stats);
@@ -1785,10 +1855,17 @@ async function uploadActiveRecord() {
     openSubmissionModal({ assessment, stats, meta, recordId: result.id, googleResult });
   } catch (error) {
     console.error(error);
+    closeSubmissionModal({ restoreFocus: false, force: true });
     setPanelStatus(
       "上傳或匯出失敗。請確認 Firestore 規則與 Google 匯出環境變數設定。",
       "error"
     );
+    openSubmissionFailureModal(
+      "上傳或匯出失敗，請稍後再試；若問題持續發生，請通知院內人員協助確認。"
+    );
+  } finally {
+    uploadInProgress = false;
+    renderScorePanel();
   }
 }
 
