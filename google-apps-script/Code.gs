@@ -249,10 +249,11 @@ function createPdf_(folder, fileBaseName, html) {
 }
 
 function buildSheetRow_(record, firebaseRecordId, pdfFile) {
+  const assessmentDate = getRecordAssessmentDate_(record);
   return [
     new Date().toISOString(),
     firebaseRecordId,
-    record.assessmentDate || "",
+    assessmentDate,
     record.assessmentId || "",
     record.assessmentTitle || "",
     record.petNameOrCode || "",
@@ -280,13 +281,14 @@ function buildFileBaseName_(record) {
   const patient = sanitizeFilePart_(
     record.patientRecordNumber || (record.isExternalUser ? "非四院" : "無病歷號")
   );
-  const date = sanitizeFilePart_(record.assessmentDate || new Date().toISOString().slice(0, 10));
+  const date = sanitizeFilePart_(getRecordAssessmentDate_(record));
   const score = `${record.totalScore || 0}-${record.maxScore || 0}`;
   const assessment = sanitizeFilePart_(record.assessmentShortTitle || record.assessmentId);
   return `${date}_${assessment}_${petName}_${patient}_${score}分`;
 }
 
 function renderRecordHtml_(record, firebaseRecordId) {
+  const assessmentDate = getRecordAssessmentDate_(record);
   const rows = (record.answers || [])
     .map(
       (answer) => `
@@ -328,7 +330,7 @@ function renderRecordHtml_(record, firebaseRecordId) {
         <h1>${escapeHtml_(record.assessmentTitle)}</h1>
         <div class="meta">
           <div class="label">Firebase ID</div><div>${escapeHtml_(firebaseRecordId)}</div>
-          <div class="label">填寫日期</div><div>${escapeHtml_(record.assessmentDate || "")}</div>
+          <div class="label">填寫日期</div><div>${escapeHtml_(assessmentDate)}</div>
           <div class="label">寵物姓名</div><div>${escapeHtml_(record.petNameOrCode || "")}</div>
           <div class="label">病歷號碼</div><div>${escapeHtml_(record.patientRecordNumber || (record.isExternalUser ? "非四院共用病歷病例" : ""))}</div>
           <div class="label">總分</div><div class="score">${record.totalScore} / ${record.maxScore}</div>
@@ -352,6 +354,23 @@ function renderRecordHtml_(record, firebaseRecordId) {
         <p>提醒：此結果僅供追蹤與獸醫討論，不取代診斷。</p>
       </body>
     </html>`;
+}
+
+function getRecordAssessmentDate_(record) {
+  const rawDate =
+    record.assessmentDate ||
+    record.date ||
+    record.filledDate ||
+    record.createdDate ||
+    "";
+
+  if (rawDate) {
+    const text = String(rawDate).trim();
+    const dateMatch = text.match(/^\d{4}-\d{2}-\d{2}/);
+    return dateMatch ? dateMatch[0] : text;
+  }
+
+  return Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd");
 }
 
 function formatCategoryScores_(categories) {

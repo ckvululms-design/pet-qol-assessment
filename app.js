@@ -1636,10 +1636,22 @@ function getMetaDisplay(assessmentId) {
   return {
     ...meta,
     petName: String(meta.petName || "").trim(),
+    date: normalizeAssessmentDate(meta.date),
     patientDigits,
     patientRecordNumber: formatPatientRecordNumber(patientDigits),
     externalUser: Boolean(meta.externalUser),
   };
+}
+
+function normalizeAssessmentDate(value) {
+  const normalized = String(value || "").trim();
+  return normalized || getTodayInputDate();
+}
+
+function getTodayInputDate() {
+  const now = new Date();
+  const localDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+  return localDate.toISOString().slice(0, 10);
 }
 
 function focusMetaField(assessmentId, metaName) {
