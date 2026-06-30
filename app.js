@@ -1258,6 +1258,7 @@ function renderQuestionCard(assessment, category, item, number, itemId) {
   const answer = state.answers[assessment.id]?.[itemId];
   const scale = item.scale || category.scale || assessment.scale;
   const showInlineLabels = hasInlineScoreLabels(scale);
+  const reverseNote = item.reverse ? getReverseQuestionNote(scale) : "";
   return `
     <article class="question-card ${item.reverse ? "reverse" : ""}">
       <div class="question-copy">
@@ -1266,7 +1267,7 @@ function renderQuestionCard(assessment, category, item, number, itemId) {
           <p class="question-text">${escapeHtml(item.text)}</p>
           ${
             item.reverse
-              ? `<p class="reverse-note">負向題：${scale.min} 代表負面狀態明顯，${scale.max} 代表負面狀態不明顯。</p>`
+              ? `<p class="reverse-note">${escapeHtml(reverseNote)}</p>`
               : ""
           }
           ${
@@ -1282,8 +1283,7 @@ function renderQuestionCard(assessment, category, item, number, itemId) {
           .map((value) =>
             renderScoreOption({
               assessment,
-              scale,
-              showInlineLabel: showInlineLabels,
+              inlineLabel: showInlineLabels ? scoreLabelFor(scale, item, value) : "",
               itemId,
               value,
               checked: answer === value,
@@ -1355,8 +1355,7 @@ function renderSourceBlock(assessment) {
 
 function renderScoreOption({
   assessment,
-  scale,
-  showInlineLabel = false,
+  inlineLabel = "",
   itemId,
   value,
   checked,
@@ -1366,7 +1365,6 @@ function renderScoreOption({
   ariaLabel,
 }) {
   const id = `${name}-${value}`;
-  const inlineLabel = showInlineLabel ? getInlineScoreLabel(scale, value) : "";
   return `
     <span>
       <input
@@ -1393,8 +1391,10 @@ function hasInlineScoreLabels(scale) {
   return Boolean(scale?.labels);
 }
 
-function getInlineScoreLabel(scale, value) {
-  return String(scale?.labels?.[value] || "").trim();
+function getReverseQuestionNote(scale) {
+  const min = getScaleMin(scale);
+  const max = getScaleMax(scale);
+  return `負向題採反向選項：${min} 代表完全符合這個負向描述，${max} 代表完全不符合這個負向描述。`;
 }
 
 function renderProgress() {
@@ -1649,10 +1649,17 @@ function normalizeItem(item) {
 
 function scoreLabelFor(scale, item, value) {
   if (item.reverse) {
-    if (value === scale.min) return "負面狀態明顯";
-    if (value === scale.max) return "負面狀態不明顯";
+    return getReverseScoreLabel(scale, value);
   }
   return scale.labels[value] || `${value} 分`;
+}
+
+function getReverseScoreLabel(scale, value) {
+  const values = getScaleValues(scale);
+  const index = values.indexOf(value);
+  if (index < 0) return scale.labels[value] || `${value} 分`;
+  const mirroredValue = values[values.length - 1 - index];
+  return scale.labels[mirroredValue] || `${value} 分`;
 }
 
 function getAssessmentUrl(assessmentId) {
