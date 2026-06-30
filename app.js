@@ -1257,7 +1257,7 @@ function renderQuestionGuideBefore(assessment, guides, itemNumber) {
 function renderQuestionCard(assessment, category, item, number, itemId) {
   const answer = state.answers[assessment.id]?.[itemId];
   const scale = item.scale || category.scale || assessment.scale;
-  const showInlineLabels = usesInlineScoreLabels(assessment);
+  const showInlineLabels = hasInlineScoreLabels(scale);
   return `
     <article class="question-card ${item.reverse ? "reverse" : ""}">
       <div class="question-copy">
@@ -1389,8 +1389,8 @@ function renderScoreOption({
   `;
 }
 
-function usesInlineScoreLabels(assessment) {
-  return ["dog-ccdr", "dog-cades"].includes(assessment.id);
+function hasInlineScoreLabels(scale) {
+  return Boolean(scale?.labels);
 }
 
 function getInlineScoreLabel(scale, value) {
