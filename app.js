@@ -1257,6 +1257,7 @@ function renderQuestionGuideBefore(assessment, guides, itemNumber) {
 function renderQuestionCard(assessment, category, item, number, itemId) {
   const answer = state.answers[assessment.id]?.[itemId];
   const scale = item.scale || category.scale || assessment.scale;
+  const showInlineLabels = usesInlineScoreLabels(assessment);
   return `
     <article class="question-card ${item.reverse ? "reverse" : ""}">
       <div class="question-copy">
@@ -1275,13 +1276,14 @@ function renderQuestionCard(assessment, category, item, number, itemId) {
           }
         </div>
       </div>
-      <fieldset class="score-options">
+      <fieldset class="score-options ${showInlineLabels ? "score-options-with-labels" : ""}">
         <legend class="sr-only">第 ${number} 題分數</legend>
         ${getScaleValues(scale)
           .map((value) =>
             renderScoreOption({
               assessment,
               scale,
+              showInlineLabel: showInlineLabels,
               itemId,
               value,
               checked: answer === value,
@@ -1353,6 +1355,8 @@ function renderSourceBlock(assessment) {
 
 function renderScoreOption({
   assessment,
+  scale,
+  showInlineLabel = false,
   itemId,
   value,
   checked,
@@ -1362,6 +1366,7 @@ function renderScoreOption({
   ariaLabel,
 }) {
   const id = `${name}-${value}`;
+  const inlineLabel = showInlineLabel ? getInlineScoreLabel(scale, value) : "";
   return `
     <span>
       <input
@@ -1376,9 +1381,20 @@ function renderScoreOption({
         aria-label="${escapeAttribute(ariaLabel)}"
         ${checked ? "checked" : ""}
       />
-      <label class="score-label ${reverse ? "reverse-label" : ""}" for="${escapeAttribute(id)}">${value}</label>
+      <label class="score-label ${inlineLabel ? "has-score-caption" : ""} ${reverse ? "reverse-label" : ""}" for="${escapeAttribute(id)}">
+        <span class="score-number">${value}</span>
+        ${inlineLabel ? `<span class="score-caption">${escapeHtml(inlineLabel)}</span>` : ""}
+      </label>
     </span>
   `;
+}
+
+function usesInlineScoreLabels(assessment) {
+  return ["dog-ccdr", "dog-cades"].includes(assessment.id);
+}
+
+function getInlineScoreLabel(scale, value) {
+  return String(scale?.labels?.[value] || "").trim();
 }
 
 function renderProgress() {

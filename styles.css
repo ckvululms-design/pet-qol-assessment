@@ -817,6 +817,10 @@ a {
   border: 0;
 }
 
+.score-options-with-labels {
+  grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
+}
+
 .score-input {
   position: absolute;
   inline-size: 1px;
@@ -839,10 +843,37 @@ a {
   user-select: none;
 }
 
+.score-label.has-score-caption {
+  align-content: center;
+  justify-items: center;
+  min-height: 72px;
+  padding: 8px 7px;
+  gap: 3px;
+  text-align: center;
+  line-height: 1.24;
+}
+
+.score-number {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.score-caption {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.28;
+}
+
 .score-input:checked + .score-label {
   border-color: var(--accent);
   background: var(--accent);
   color: #ffffff;
+}
+
+.score-input:checked + .score-label .score-caption {
+  color: #ffffff;
+  opacity: 0.96;
 }
 
 .score-input:checked + .score-label.reverse-label {
@@ -1222,6 +1253,14 @@ a {
 
   .score-options {
     grid-template-columns: repeat(auto-fit, minmax(42px, 1fr));
+  }
+
+  .score-options-with-labels {
+    grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+  }
+
+  .score-label.has-score-caption {
+    min-height: 68px;
   }
 
   .overall-scale {
